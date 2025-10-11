@@ -11,14 +11,9 @@ import org.springframework.http.HttpMethod;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import java.io.IOException;
-import java.net.URLEncoder;
 import java.net.URI;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 
 @Component
 public abstract class AbstractWebService {
@@ -72,26 +67,6 @@ public abstract class AbstractWebService {
         HttpEntity<String> requestEntity = new HttpEntity<>(customHeaders);
         String htmlContent = restTemplate.exchange(finalApiUri, HttpMethod.GET, requestEntity, String.class).getBody();
 
-        // Guardamos el HTML en un archivo para una fácil depuración
-        saveHtmlToFile(targetUrl, htmlContent);
-
         return htmlContent;
-    }
-
-    private void saveHtmlToFile(String url, String content) {
-        if (content == null || content.isEmpty()) {
-            return;
-        }
-        try {
-            // Crea un nombre de archivo único basado en el hash de la URL y la hora
-            String fileName = "scrape_" + url.hashCode() + "_" + System.currentTimeMillis() + ".html";
-            Path path = Paths.get("debug_html", fileName);
-            // Asegura que el directorio 'debug_html' exista
-            Files.createDirectories(path.getParent());
-            Files.writeString(path, content);
-            log.info("HTML content for URL [{}] saved to file: {}", url, path.toAbsolutePath());
-        } catch (IOException e) {
-            log.error("Failed to save HTML content to file for URL [{}].", url, e);
-        }
     }
 }
