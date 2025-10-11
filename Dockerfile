@@ -1,20 +1,21 @@
-# --- Build Stage ---
-FROM gradle:8.8-jdk21-jammy AS build
+# --- Etapa 1: Construcción (Build Stage) ---
+# Usamos una imagen de Gradle con JDK 21 para compilar la aplicación.
+FROM gradle:8.8-jdk21-jammy AS builder
 
 WORKDIR /app
 COPY build.gradle settings.gradle gradlew ./
 COPY gradle ./gradle
-RUN chmod +x gradlew
-RUN ./gradlew build -x test --no-daemon --stacktrace || true
+RUN ./gradlew dependencies --no-daemon
 
 COPY src ./src
-RUN ./gradlew build -x test --no-daemon
+RUN ./gradlew bootJar --no-daemon
 
-# --- Runtime Stage ---
-FROM mcr.microsoft.com/playwright/java:v1.45.0-jammy
+# --- Etapa 2: Ejecución (Runtime Stage) ---
+# Usamos una imagen de Java 21 optimizada y ligera.
+FROM eclipse-temurin:21-jre-jammy
 
 WORKDIR /app
-COPY --from=build /app/build/libs/*.jar app.jar
+COPY --from=builder /app/build/libs/*.jar app.jar
 
 EXPOSE 8081
 ENTRYPOINT ["java", "-jar", "app.jar"]
