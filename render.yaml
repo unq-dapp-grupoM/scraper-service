@@ -1,0 +1,16 @@
+# Esta línea es crucial para que Render interprete correctamente el archivo.
+version: "1"
+
+services:
+  # Define el servicio web que se desplegará.
+  - name: futbol-api
+    type: web
+    plan: free # Usa el plan gratuito para evitar cargos.
+    env: image # Indica a Render que use una imagen de Docker pre-construida.
+    autoDeploy: false # Desactiva el auto-despliegue, lo controlamos con el Deploy Hook.
+    image:
+      url: ghcr.io/unq-dapp-grupom/scraper-service:main # URL de la imagen en GitHub Container Registry
+    healthCheckPath: /actuator/health # Ruta para que Render sepa si tu app está lista.
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: production # Activa el perfil de producción de Spring.

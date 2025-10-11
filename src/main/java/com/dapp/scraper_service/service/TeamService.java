@@ -10,6 +10,7 @@ import com.dapp.scraper_service.model.dto.TeamPlayerDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,23 +22,24 @@ public class TeamService extends AbstractWebService {
 
     private static final Logger log = LoggerFactory.getLogger(TeamService.class);
 
-    private static final String WHOSCORED_SEARCH_URL = BASE_URL + "Search/?text=";
+    private static final String WHOSCORED_SEARCH_URL = BASE_URL + "search/";
 
     @Cacheable("teams")
     public TeamDTO getTeamInfoByName(String teamName) {
         try {
             // 1. Buscar el equipo para obtener su URL
-            String searchUrl = WHOSCORED_SEARCH_URL + teamName;
-            String searchPageHtml = getHtmlContent(searchUrl);
+            String searchPageHtml = getHtmlContent(WHOSCORED_SEARCH_URL, teamName);
             Document searchDoc = Jsoup.parse(searchPageHtml);
 
             // Selector de JSoup para encontrar el enlace del equipo
-            Element teamLink = searchDoc.select("div.search-result:has(h2:contains(Equipos)) tbody tr a").first();
+            Element teamLink = searchDoc.select("div.search-result:has(h2:contains(Equipos)) tbody tr:nth-child(2) a")
+                    .first();
             if (teamLink == null) {
                 throw new IllegalArgumentException("Team with name '" + teamName + "' not found in search.");
             }
 
-            String teamPageUrl = BASE_URL + teamLink.attr("href");
+            String teamPageUrl = UriComponentsBuilder.fromHttpUrl(BASE_URL).path(teamLink.attr("href"))
+                    .toUriString();
 
             // 2. Scrapear la página del equipo
             String teamPageHtml = getHtmlContent(teamPageUrl);
