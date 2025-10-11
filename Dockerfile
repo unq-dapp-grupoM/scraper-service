@@ -5,6 +5,10 @@ FROM gradle:8.8-jdk21-jammy AS builder
 WORKDIR /app
 COPY build.gradle settings.gradle gradlew ./
 COPY gradle ./gradle
+
+# Damos permisos de ejecución al wrapper de Gradle
+RUN chmod +x gradlew
+
 RUN ./gradlew dependencies --no-daemon
 
 COPY src ./src
