@@ -1,18 +1,18 @@
 // En tu proyecto scraper-service
-package com.dapp.scraper_service.service; // O el paquete que uses
+package com.dapp.scraper_service.service;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
+import org.springframework.web.util.DefaultUriBuilderFactory;
 
 import java.net.URI;
 import java.net.URLDecoder;
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 
 @Component
@@ -22,51 +22,76 @@ public abstract class AbstractWebService {
     protected static final String BASE_URL = "https://es.whoscored.com/";
     protected static final String NOT_FOUND = "Not found";
 
-    private final RestTemplate restTemplate = new RestTemplate();
+    private final RestTemplate restTemplate;
 
     @Value("${scraper.api.key}")
     private String apiKey;
 
-    // Sobrecargamos el método para búsquedas
+    @Value("${scraper.timeout:30000}")
+    private int timeout;
+
+    public AbstractWebService() {
+        this.restTemplate = new RestTemplate();
+        DefaultUriBuilderFactory defaultUriBuilderFactory = new DefaultUriBuilderFactory();
+        defaultUriBuilderFactory.setEncodingMode(DefaultUriBuilderFactory.EncodingMode.URI_COMPONENT);
+        this.restTemplate.setUriTemplateHandler(defaultUriBuilderFactory);
+    }
+
     protected String getHtmlContent(String baseUrl, String searchTerm) {
-        log.debug(searchTerm);
-        // WhoScored AJAX espera '+' en lugar de '%20' para los espacios
+        log.debug("Searching for: {}", searchTerm);
+
         String decodedSearch = URLDecoder.decode(searchTerm, StandardCharsets.UTF_8);
         String formattedSearch = decodedSearch.trim().replace(" ", "+");
 
-        String targetUrl = UriComponentsBuilder.fromHttpUrl(baseUrl).queryParam("t", formattedSearch).toUriString();
-        return getHtmlContent(targetUrl, true, null);
+        String targetUrl = UriComponentsBuilder.fromHttpUrl(baseUrl)
+                .queryParam("t", formattedSearch)
+                .encode(StandardCharsets.UTF_8)
+                .build()
+                .toUriString();
+
+        return getHtmlContent(targetUrl, true, "div.search-result");
     }
 
-    // Método para obtener páginas que sí necesitan renderizado de JS
     protected String getHtmlContent(String targetUrl) {
         return getHtmlContent(targetUrl, true, null);
     }
 
-    private String getHtmlContent(String targetUrl, boolean renderJavascript, HttpHeaders customHeaders) {
-        // Volvemos a la construcción manual de la URL, como en la documentación de
-        // ScraperAPI,
-        // para tener control total sobre la codificación.
-        StringBuilder apiUrlBuilder = new StringBuilder("http://api.scraperapi.com?");
-        apiUrlBuilder.append("api_key={apiKey}");
-        apiUrlBuilder.append("&session_number={sessionNum}");
-        apiUrlBuilder.append("&country_code=ar");
+    private String getHtmlContent(String targetUrl, boolean renderJavascript, String waitForSelector) {
+        try {
+            String encodedTargetUrl = URLEncoder.encode(targetUrl, StandardCharsets.UTF_8.toString());
 
-        if (renderJavascript) {
-            apiUrlBuilder.append("&render=true");
+            UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl("https://app.scrapingbee.com/api/v1/")
+                    .queryParam("api_key", apiKey)
+                    .queryParam("url", encodedTargetUrl)
+                    .queryParam("render_js", renderJavascript)
+                    .queryParam("country_code", "es")
+                    .queryParam("timeout", timeout)
+                    .queryParam("premium_proxy", "true");
+            // Removemos los headers problemáticos por ahora
+
+            if (renderJavascript) {
+                builder.queryParam("wait", "2000");
+                if (waitForSelector != null && !waitForSelector.isEmpty()) {
+                    builder.queryParam("wait_for", waitForSelector);
+                }
+            }
+
+            URI finalApiUri = builder.build(true).toUri();
+
+            log.debug("Executing ScrapingBee call for: {}", targetUrl);
+
+            String result = restTemplate.getForObject(finalApiUri, String.class);
+
+            if (result == null || result.trim().isEmpty()) {
+                log.warn("Empty response from ScrapingBee");
+                return NOT_FOUND;
+            }
+
+            return result;
+
+        } catch (Exception e) {
+            log.error("Failed to scrape URL: {} - Error: {}", targetUrl, e.getMessage());
+            throw new RuntimeException("Error during scraping API call for: " + targetUrl, e);
         }
-        // La parte crucial: codificamos la URL de destino y la añadimos.
-        apiUrlBuilder.append("&url={targetUrl}");
-
-        URI finalApiUri = UriComponentsBuilder.fromUriString(apiUrlBuilder.toString())
-                .build(apiKey, targetUrl.hashCode(), targetUrl);
-
-        log.debug("Executing ScraperAPI call for URI: {} with JS rendering: {} and custom headers: {}", finalApiUri,
-                renderJavascript, customHeaders != null);
-
-        HttpEntity<String> requestEntity = new HttpEntity<>(customHeaders);
-        String htmlContent = restTemplate.exchange(finalApiUri, HttpMethod.GET, requestEntity, String.class).getBody();
-
-        return htmlContent;
     }
 }
