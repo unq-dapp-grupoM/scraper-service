@@ -39,6 +39,13 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-cache'
 	implementation 'com.github.ben-manes.caffeine:caffeine'
 
+	// --- Añadimos la dependencia para JPA y la base de datos ---
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+
+	// HSQLDB H2
+	runtimeOnly 'org.hsqldb:hsqldb' // Tu base de datos en memoria principal
+	runtimeOnly 'com.h2database:h2'    // Dependencia para habilitar la consola web
+
 
 }
 
