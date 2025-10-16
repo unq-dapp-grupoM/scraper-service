@@ -1,6 +1,7 @@
 package com.dapp.scraper_service.web;
 
 import com.dapp.scraper_service.model.dto.PlayerDTO;
+import java.util.List;
 import com.dapp.scraper_service.model.dto.TeamDTO;
 import com.dapp.scraper_service.service.PlayerService;
 import com.dapp.scraper_service.service.TeamService;
@@ -24,9 +25,9 @@ public class ScraperController {
     }
 
     @GetMapping("/player")
-    public ResponseEntity<PlayerDTO> scrapePlayer(@RequestParam("playerName") String playerName) {
+    public ResponseEntity<List<PlayerDTO>> scrapePlayer(@RequestParam("playerName") String playerName) {
         try {
-            PlayerDTO player = playerService.getPlayerInfoByName(playerName);
+            List<PlayerDTO> player = playerService.getPlayerInfoByName(playerName);
             return ResponseEntity.ok(player);
         } catch (IllegalArgumentException e) {
             // Si el PlayerService lanza IllegalArgumentException (ej. jugador no
@@ -39,9 +40,9 @@ public class ScraperController {
     }
 
     @GetMapping("/team")
-    public ResponseEntity<TeamDTO> scrapeTeam(@RequestParam("teamName") String teamName) {
+    public ResponseEntity<List<TeamDTO>> scrapeTeam(@RequestParam("teamName") String teamName) {
         try {
-            TeamDTO team = teamService.getTeamInfoByName(teamName);
+            List<TeamDTO> team = teamService.getTeamInfoByName(teamName);
             return ResponseEntity.ok(team);
         } catch (IllegalArgumentException e) {
             // Si el TeamService lanza IllegalArgumentException (ej. equipo no encontrado)
