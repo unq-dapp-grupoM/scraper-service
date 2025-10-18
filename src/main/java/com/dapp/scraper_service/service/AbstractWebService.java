@@ -18,8 +18,8 @@ import java.nio.charset.StandardCharsets;
 public abstract class AbstractWebService {
 
     private static final Logger log = LoggerFactory.getLogger(AbstractWebService.class);
-    protected static final String BASE_URL = "https://es.whoscored.com/";
-    protected static final String NOT_FOUND = "Not found";
+    public static final String BASE_URL = "https://es.whoscored.com/";
+    public static final String NOT_FOUND = "Not found";
 
     private final RestTemplate restTemplate;
 
@@ -36,7 +36,7 @@ public abstract class AbstractWebService {
         this.restTemplate.setUriTemplateHandler(defaultUriBuilderFactory);
     }
 
-    protected String getHtmlContent(String baseUrl, String searchTerm) {
+    public String getHtmlContent(String baseUrl, String searchTerm) {
         log.debug("Searching for: {}", searchTerm);
 
         String decodedSearch = URLDecoder.decode(searchTerm, StandardCharsets.UTF_8);
@@ -51,7 +51,7 @@ public abstract class AbstractWebService {
         return getHtmlContent(targetUrl, true, "div.search-result");
     }
 
-    protected String getHtmlContent(String targetUrl) {
+    public String getHtmlContent(String targetUrl) {
         return getHtmlContent(targetUrl, true, null);
     }
 
