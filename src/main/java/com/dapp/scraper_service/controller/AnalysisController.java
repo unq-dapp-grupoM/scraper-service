@@ -1,8 +1,13 @@
 package com.dapp.scraper_service.controller;
 
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -19,6 +24,7 @@ import com.dapp.scraper_service.model.PredictiveAnalysis;
 import com.dapp.scraper_service.service.DataIntegrationService;
 import com.dapp.scraper_service.service.PerformanceCalculatorService;
 import com.dapp.scraper_service.service.PredictionService;
+import com.fasterxml.jackson.annotation.JsonFormat;
 
 @RestController
 @RequestMapping("/api/analysis")
@@ -110,18 +116,43 @@ public class AnalysisController {
         Map<String, Object> response = new HashMap<>();
 
         try {
-            List<MatchStatistics> matches2024 = dataIntegrationService.convertToMatchStatistics(player);
+            List<MatchStatistics> allMatches = dataIntegrationService.convertToMatchStatistics(player);
 
-            List<MatchStatistics> currentSeason = matches2024.stream()
-                    .filter(m -> "2024".equals(m.getSeason()))
-                    .toList();
+            // Encontrar la temporada más reciente automáticamente
+            Optional<String> latestSeason = allMatches.stream()
+                    .map(MatchStatistics::getSeason)
+                    .filter(Objects::nonNull)
+                    .distinct()
+                    .max(Comparator.naturalOrder());
 
-            if (!currentSeason.isEmpty()) {
-                PerformanceMetrics metrics2024 = performanceCalculator.calculateMetrics(currentSeason);
-                response.put("2024", metrics2024);
+            if (latestSeason.isPresent()) {
+                String currentSeason = latestSeason.get();
+                List<MatchStatistics> currentSeasonMatches = allMatches.stream()
+                        .filter(m -> currentSeason.equals(m.getSeason()))
+                        .toList();
+
+                if (!currentSeasonMatches.isEmpty()) {
+                    PerformanceMetrics metrics = performanceCalculator.calculateMetrics(currentSeasonMatches);
+                    response.put("currentSeason", currentSeason);
+                    response.put("metrics", metrics);
+                    response.put("matchesAnalyzed", currentSeasonMatches.size());
+                }
+            }
+
+            // También mostrar todas las temporadas disponibles para comparación
+            Map<String, List<MatchStatistics>> matchesBySeason = allMatches.stream()
+                    .filter(m -> m.getSeason() != null && !m.getSeason().isEmpty())
+                    .collect(Collectors.groupingBy(MatchStatistics::getSeason));
+
+            Map<String, PerformanceMetrics> allMetrics = new HashMap<>();
+            for (Map.Entry<String, List<MatchStatistics>> entry : matchesBySeason.entrySet()) {
+                PerformanceMetrics metrics = performanceCalculator.calculateMetrics(entry.getValue());
+                allMetrics.put(entry.getKey(), metrics);
             }
 
             response.put("player", player);
+            response.put("allSeasonsMetrics", allMetrics);
+            response.put("availableSeasons", new ArrayList<>(matchesBySeason.keySet()));
             response.put("status", "SUCCESS");
 
             return ResponseEntity.ok(response);
