@@ -24,7 +24,6 @@ import com.dapp.scraper_service.model.PredictiveAnalysis;
 import com.dapp.scraper_service.service.DataIntegrationService;
 import com.dapp.scraper_service.service.PerformanceCalculatorService;
 import com.dapp.scraper_service.service.PredictionService;
-import com.fasterxml.jackson.annotation.JsonFormat;
 
 @RestController
 @RequestMapping("/api/analysis")

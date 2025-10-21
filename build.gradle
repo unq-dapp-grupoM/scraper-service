@@ -46,6 +46,9 @@ dependencies {
 	runtimeOnly 'org.hsqldb:hsqldb' // Tu base de datos en memoria principal
 	runtimeOnly 'com.h2database:h2'    // Dependencia para habilitar la consola web
 
+	// PostgreSQL para producción
+    runtimeOnly 'org.postgresql:postgresql'
+
 
 }
 
