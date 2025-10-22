@@ -1,12 +1,19 @@
 package com.dapp.scraper_service.controller;
 
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
 
 import javax.sql.DataSource;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -44,51 +51,45 @@ public class DatabaseDebugController {
         return result;
     }
 
-    @PostMapping("/force-create-tables")
-    public Map<String, Object> forceCreateTables() {
+    @PostMapping("/create-all-tables")
+    public Map<String, Object> createAllTables() {
         Map<String, Object> result = new HashMap<>();
 
         try {
-            // 1. Forzar creación usando JPA
-            jdbcTemplate.execute("SELECT 1"); // Activa la conexión
+            // Leer el archivo schema.sql desde resources
+            Resource resource = new ClassPathResource("schema.sql");
+            String sqlScript = new String(Files.readAllBytes(Paths.get(resource.getURI())));
 
-            // 2. Crear tablas manualmente si es necesario
-            String[] createTables = {
-                    "CREATE TABLE IF NOT EXISTS players (" +
-                            "id BIGSERIAL PRIMARY KEY, " +
-                            "name VARCHAR(255) NOT NULL UNIQUE, " +
-                            "current_team VARCHAR(255), " +
-                            "shirt_number VARCHAR(10), " +
-                            "age VARCHAR(50), " +
-                            "height VARCHAR(50), " +
-                            "nationality VARCHAR(100), " +
-                            "positions VARCHAR(255))",
+            // Dividir el script en sentencias individuales
+            String[] sqlStatements = sqlScript.split(";");
 
-                    "CREATE TABLE IF NOT EXISTS player_match_stats (" +
-                            "id BIGSERIAL PRIMARY KEY, " +
-                            "opponent VARCHAR(255), " +
-                            "score VARCHAR(100), " +
-                            "date VARCHAR(50), " +
-                            "position VARCHAR(100), " +
-                            "mins_played VARCHAR(50), " +
-                            "goals VARCHAR(50), " +
-                            "assists VARCHAR(50), " +
-                            "yellow_cards VARCHAR(50), " +
-                            "red_cards VARCHAR(50), " +
-                            "shots VARCHAR(50), " +
-                            "pass_success VARCHAR(50), " +
-                            "aerials_won VARCHAR(50), " +
-                            "rating VARCHAR(50), " +
-                            "player_id BIGINT, " +
-                            "FOREIGN KEY (player_id) REFERENCES players(id))"
-            };
+            List<String> executedTables = new ArrayList<>();
+            for (String sql : sqlStatements) {
+                if (sql.trim().isEmpty())
+                    continue;
 
-            for (String sql : createTables) {
-                jdbcTemplate.execute(sql);
+                try {
+                    jdbcTemplate.execute(sql.trim());
+
+                    // Extraer nombre de tabla si es CREATE TABLE
+                    if (sql.toUpperCase().contains("CREATE TABLE")) {
+                        String tableName = extractTableName(sql);
+                        if (tableName != null) {
+                            executedTables.add(tableName);
+                        }
+                    }
+                } catch (Exception e) {
+                    // Ignorar errores de "tabla ya existe"
+                    if (!e.getMessage().contains("already exists")) {
+                        result.put("warning", "Some statements had issues: " + e.getMessage());
+                    }
+                }
             }
 
             result.put("status", "SUCCESS");
-            result.put("message", "Tablas creadas exitosamente");
+            result.put("executedTables", executedTables);
+            result.put("totalStatements", sqlStatements.length);
+            result.put("message", "Schema.sql ejecutado completamente");
 
         } catch (Exception e) {
             result.put("status", "ERROR");
@@ -96,5 +97,15 @@ public class DatabaseDebugController {
         }
 
         return result;
+    }
+
+    private String extractTableName(String sql) {
+        // Extraer nombre de tabla del CREATE TABLE
+        Pattern pattern = Pattern.compile("CREATE TABLE (?:IF NOT EXISTS )?([a-zA-Z_][a-zA-Z0-9_]*)");
+        Matcher matcher = pattern.matcher(sql.toUpperCase());
+        if (matcher.find()) {
+            return matcher.group(1).toLowerCase();
+        }
+        return null;
     }
 }

@@ -1,8 +1,3 @@
--- =============================================
--- SCHEMA PARA SCRAPER SERVICE - POSTGRESQL
--- Basado en las entidades JPA existentes
--- =============================================
-
 -- Tabla: players
 CREATE TABLE IF NOT EXISTS players (
     id BIGSERIAL PRIMARY KEY,
@@ -95,33 +90,22 @@ CREATE TABLE IF NOT EXISTS performance_metrics (
     id BIGSERIAL PRIMARY KEY,
     player_name VARCHAR(255) NOT NULL,
     analysis_date DATE,
-    
-    -- OFFENSIVE METRICS
     goals_per_match DOUBLE PRECISION DEFAULT 0.0,
     assists_per_match DOUBLE PRECISION DEFAULT 0.0,
     goal_involvement DOUBLE PRECISION DEFAULT 0.0,
     shots_per_match DOUBLE PRECISION DEFAULT 0.0,
     shot_accuracy DOUBLE PRECISION DEFAULT 0.0,
-    
-    -- DISTRIBUTION METRICS
     pass_accuracy DOUBLE PRECISION DEFAULT 0.0,
     key_passes_per_match DOUBLE PRECISION DEFAULT 0.0,
-    
-    -- DEFENSIVE METRICS
     aerial_duels_won DOUBLE PRECISION DEFAULT 0.0,
     recoveries_per_match DOUBLE PRECISION DEFAULT 0.0,
-    
-    -- CONSISTENCY METRICS
     average_rating DOUBLE PRECISION DEFAULT 0.0,
     rating_deviation DOUBLE PRECISION DEFAULT 0.0,
     minutes_per_match DOUBLE PRECISION DEFAULT 0.0,
-    
-    -- ADVANCED METRICS
     offensive_impact DOUBLE PRECISION DEFAULT 0.0,
     performance_trend DOUBLE PRECISION DEFAULT 0.0,
     goal_probability DOUBLE PRECISION DEFAULT 0.0,
     assist_probability DOUBLE PRECISION DEFAULT 0.0,
-    
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -130,66 +114,15 @@ CREATE TABLE IF NOT EXISTS predictive_analysis (
     id BIGSERIAL PRIMARY KEY,
     player_name VARCHAR(255) NOT NULL,
     analysis_date DATE,
-    
-    -- PREDICTIVE PROBABILITIES
     goal_probability DOUBLE PRECISION DEFAULT 0.0,
     assist_probability DOUBLE PRECISION DEFAULT 0.0,
     high_rating_probability DOUBLE PRECISION DEFAULT 0.0,
     full_match_probability DOUBLE PRECISION DEFAULT 0.0,
-    
-    -- INFLUENCE FACTORS
     home_advantage_factor DOUBLE PRECISION DEFAULT 1.0,
     opponent_factor DOUBLE PRECISION DEFAULT 1.0,
     position_factor DOUBLE PRECISION DEFAULT 1.0,
     trend_factor DOUBLE PRECISION DEFAULT 0.0,
-    
-    -- RECOMMENDATIONS
     performance_prediction VARCHAR(50),
     predictive_score DOUBLE PRECISION DEFAULT 0.0,
-    
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
-
--- =============================================
--- ÍNDICES PARA MEJOR RENDIMIENTO
--- =============================================
-
--- Índices para players
-CREATE INDEX IF NOT EXISTS idx_players_name ON players(name);
-CREATE INDEX IF NOT EXISTS idx_players_team ON players(current_team);
-
--- Índices para teams
-CREATE INDEX IF NOT EXISTS idx_teams_name ON teams(name);
-
--- Índices para team_players
-CREATE INDEX IF NOT EXISTS idx_team_players_team ON team_players(team_id);
-CREATE INDEX IF NOT EXISTS idx_team_players_name ON team_players(name);
-
--- Índices para player_match_stats
-CREATE INDEX IF NOT EXISTS idx_player_match_stats_player ON player_match_stats(player_id);
-CREATE INDEX IF NOT EXISTS idx_player_match_stats_opponent ON player_match_stats(opponent);
-
--- Índices para match_statistics
-CREATE INDEX IF NOT EXISTS idx_match_stats_player ON match_statistics(player_name);
-CREATE INDEX IF NOT EXISTS idx_match_stats_date ON match_statistics(match_date);
-CREATE INDEX IF NOT EXISTS idx_match_stats_season ON match_statistics(season);
-
--- Índices para performance_metrics
-CREATE INDEX IF NOT EXISTS idx_performance_player ON performance_metrics(player_name);
-CREATE INDEX IF NOT EXISTS idx_performance_date ON performance_metrics(analysis_date);
-
--- Índices para predictive_analysis
-CREATE INDEX IF NOT EXISTS idx_predictive_player ON predictive_analysis(player_name);
-CREATE INDEX IF NOT EXISTS idx_predictive_date ON predictive_analysis(analysis_date);
-
--- =============================================
--- COMENTARIOS DE TABLAS
--- =============================================
-
-COMMENT ON TABLE players IS 'Jugadores principales del sistema';
-COMMENT ON TABLE teams IS 'Equipos de fútbol';
-COMMENT ON TABLE team_players IS 'Jugadores que pertenecen a equipos específicos';
-COMMENT ON TABLE player_match_stats IS 'Estadísticas de partidos desde scraping';
-COMMENT ON TABLE match_statistics IS 'Estadísticas de partidos para análisis';
-COMMENT ON TABLE performance_metrics IS 'Métricas de rendimiento calculadas';
-COMMENT ON TABLE predictive_analysis IS 'Análisis predictivo de rendimiento';
