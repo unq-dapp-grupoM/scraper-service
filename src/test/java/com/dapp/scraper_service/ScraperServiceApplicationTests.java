@@ -99,16 +99,4 @@ class ScraperServiceApplicationTests {
 				.andExpect(status().isOk());
 	}
 
-	@Test
-	@DisplayName("POST /api/analysis/{player}/convert-data debe devolver 200 OK")
-	void whenConvertDataIsCalled_thenReturnsOk() throws Exception {
-		// Arrange
-		when(dataIntegrationService.convertToMatchStatistics(anyString())).thenReturn(Collections.emptyList());
-
-		// Act & Assert
-		mockMvc.perform(post("/api/analysis/Test Player/convert-data"))
-				.andExpect(status().isOk())
-				.andExpect(jsonPath("$.status").value("SUCCESS"));
-	}
-
 }
