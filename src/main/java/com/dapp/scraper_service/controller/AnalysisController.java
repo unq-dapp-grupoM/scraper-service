@@ -13,7 +13,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -48,6 +47,7 @@ public class AnalysisController {
             @RequestParam(name = "season", defaultValue = "2024") String season) {
 
         try {
+            // Conversión automática antes de calcular métricas
             List<MatchStatistics> matches = dataIntegrationService.convertToMatchStatistics(player);
 
             if (matches.isEmpty()) {
@@ -74,6 +74,15 @@ public class AnalysisController {
             @RequestParam(name = "position") String position) {
 
         try {
+            // Conversión automática antes de predecir
+            List<MatchStatistics> matches = dataIntegrationService.convertToMatchStatistics(player);
+
+            if (matches.isEmpty()) {
+                return ResponseEntity.status(404).body(
+                        Map.of("error", "No data found",
+                                "message", "No statistics available for prediction for player: " + player));
+            }
+
             PredictiveAnalysis prediction = predictionService.predictPerformance(
                     player, opponent, isHome, position);
 
@@ -83,28 +92,6 @@ public class AnalysisController {
             return ResponseEntity.status(500).body(
                     Map.of("error", "Prediction error",
                             "message", e.getMessage()));
-        }
-    }
-
-    @PostMapping("/{player}/convert-data")
-    public ResponseEntity<Map<String, Object>> convertPlayerData(@PathVariable("player") String player) {
-        Map<String, Object> response = new HashMap<>();
-
-        try {
-            List<MatchStatistics> convertedStats = dataIntegrationService.convertToMatchStatistics(player);
-
-            response.put("status", "SUCCESS");
-            response.put("player", player);
-            response.put("convertedMatches", convertedStats.size());
-            response.put("message", "Data successfully converted from scraping format to analysis format");
-
-            return ResponseEntity.ok(response);
-
-        } catch (Exception e) {
-            response.put("status", "ERROR");
-            response.put("player", player);
-            response.put("error", e.getMessage());
-            return ResponseEntity.status(500).body(response);
         }
     }
 
