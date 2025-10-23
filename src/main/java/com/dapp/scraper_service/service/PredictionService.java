@@ -16,13 +16,16 @@ public class PredictionService {
     private final PerformanceCalculatorService performanceCalculator;
     private final MatchStatisticsRepository matchStatisticsRepository;
     private final PredictiveAnalysisRepository predictiveAnalysisRepository;
+    private final SimpleTeamStrengthService teamStrengthService;
 
     public PredictionService(PerformanceCalculatorService performanceCalculator,
             MatchStatisticsRepository matchStatisticsRepository,
-            PredictiveAnalysisRepository predictiveAnalysisRepository) {
+            PredictiveAnalysisRepository predictiveAnalysisRepository,
+            SimpleTeamStrengthService teamStrengthService) {
         this.performanceCalculator = performanceCalculator;
         this.matchStatisticsRepository = matchStatisticsRepository;
         this.predictiveAnalysisRepository = predictiveAnalysisRepository;
+        this.teamStrengthService = teamStrengthService;
     }
 
     public PredictiveAnalysis predictPerformance(String playerName,
@@ -204,9 +207,7 @@ public class PredictionService {
     }
 
     private Double calculateHistoricalOpponentFactor(String opponent) {
-        // This could be enhanced with opponent strength data
-        // For now, return neutral factor
-        return 1.0;
+        return teamStrengthService.getOpponentFactor(opponent);
     }
 
     private Double calculatePredictiveScore(PredictiveAnalysis prediction) {

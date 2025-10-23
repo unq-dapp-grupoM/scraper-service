@@ -156,13 +156,24 @@ public class PerformanceCalculatorService {
     }
 
     private Double calculateShotAccuracy(List<MatchStatistics> matches) {
-        // Placeholder - necesitarías datos de shots on target vs total shots
-        return 0.5; // 50% por defecto
+        // MEJORADO: Estimación basada en goles reales
+        double goalsPerGame = calculateGoalsPerMatch(matches);
+        double shotsPerGame = calculateShotsPerMatch(matches);
+
+        if (shotsPerGame == 0)
+            return 0.3; // Default si no hay tiros
+
+        // Si anota muchos goles con pocos tiros → buena precisión
+        double efficiency = goalsPerGame / shotsPerGame;
+        return Math.min(0.8, Math.max(0.2, efficiency * 3.0)); // Rango realista 20%-80%
     }
 
     private Double calculateKeyPassesPerMatch(List<MatchStatistics> matches) {
-        // Placeholder - necesitarías datos de pases clave
-        return 1.5; // valor por defecto
+        // MEJORADO: Basado en asistencias reales
+        double assistsPerGame = calculateAssistsPerMatch(matches);
+
+        // Relación realista: por cada asistencia hay ~2-3 pases clave
+        return Math.max(0.5, assistsPerGame * 2.5);
     }
 
     private Double calculateAerialDuelsWon(List<MatchStatistics> matches) {
@@ -171,8 +182,20 @@ public class PerformanceCalculatorService {
     }
 
     private Double calculateRecoveriesPerMatch(List<MatchStatistics> matches) {
-        // Placeholder - necesitarías datos de recuperaciones
-        return 2.0; // valor por defecto
+        // MEJORADO: Basado en posición y rendimiento defensivo
+        if (matches.isEmpty())
+            return 2.0;
+
+        String position = matches.get(0).getPosition();
+        double avgRating = calculateAverageRating(matches);
+
+        if (position != null && position.toLowerCase().contains("def")) {
+            return 4.0 + (avgRating - 6.0); // Defensores: más recuperaciones
+        } else if (position != null && position.toLowerCase().contains("mid")) {
+            return 2.5 + (avgRating - 6.0) * 0.5; // Mediocampistas: medio
+        } else {
+            return 1.0 + (avgRating - 6.0) * 0.3; // Delanteros: menos
+        }
     }
 
     private Double calculateMinutesPerMatch(List<MatchStatistics> matches) {
