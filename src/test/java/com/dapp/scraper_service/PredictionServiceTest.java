@@ -7,6 +7,7 @@ import com.dapp.scraper_service.repository.MatchStatisticsRepository;
 import com.dapp.scraper_service.repository.PredictiveAnalysisRepository;
 import com.dapp.scraper_service.service.PerformanceCalculatorService;
 import com.dapp.scraper_service.service.PredictionService;
+import com.dapp.scraper_service.service.SimpleTeamStrengthService;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -24,6 +25,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
@@ -38,6 +40,9 @@ class PredictionServiceTest {
 
     @Mock
     private PredictiveAnalysisRepository predictiveAnalysisRepository;
+
+    @Mock
+    private SimpleTeamStrengthService teamStrengthService;
 
     @InjectMocks
     private PredictionService predictionService;
@@ -66,6 +71,9 @@ class PredictionServiceTest {
         // Configurar mocks
         when(predictiveAnalysisRepository.save(any(PredictiveAnalysis.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
+
+        // NUEVO: Configurar mock para teamStrengthService
+        when(teamStrengthService.getOpponentFactor(anyString())).thenReturn(1.0);
     }
 
     private MatchStatistics createMatch(String result, String opponent, String position, double rating, int minutes,
