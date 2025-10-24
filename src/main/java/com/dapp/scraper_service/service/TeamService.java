@@ -1,33 +1,32 @@
 // En tu proyecto scraper-service
 package com.dapp.scraper_service.service; // O el paquete que uses
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
-import com.dapp.scraper_service.model.Match;
-import com.dapp.scraper_service.model.dto.MatchDTO;
 import org.jsoup.select.Elements;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.util.UriComponentsBuilder;
+
+import com.dapp.scraper_service.model.Match;
 import com.dapp.scraper_service.model.Team;
 import com.dapp.scraper_service.model.TeamPlayer;
+import com.dapp.scraper_service.model.dto.MatchDTO;
 import com.dapp.scraper_service.model.dto.TeamDTO;
 import com.dapp.scraper_service.model.dto.TeamPlayerDTO;
 import com.dapp.scraper_service.repository.MatchRepository;
 import com.dapp.scraper_service.repository.TeamRepository;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.web.util.UriComponentsBuilder;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.cache.annotation.Cacheable;
 
 @Service
 public class TeamService extends AbstractWebService {
@@ -92,21 +91,23 @@ public class TeamService extends AbstractWebService {
         }
     }
 
-    @Cacheable("futureMatches")
+    @Cacheable("future-matches")
     public List<MatchDTO> getFutureMatchesByTeamName(String teamName) {
-        log.info("Scraping future matches for team '{}'.", teamName);
-
         // 1. Buscar el equipo en la BD
+        log.info("Scraping future matches for team '{}'.", teamName);
         Team team = teamRepository.findByNameContainingIgnoreCase(teamName).stream().findFirst().orElse(null);
 
         // Si el equipo existe, buscamos sus partidos en el MatchRepository
         if (team != null) {
             List<Match> matchesFromDb = matchRepository.findByTeam(team);
             if (!matchesFromDb.isEmpty()) {
+                // Si hay partidos/matches en la base de datos, los devolvemos
                 log.info("Future matches for team '{}' found in database. Skipping scrape.", teamName);
                 return matchesFromDb.stream().map(this::mapMatchToDTO).collect(Collectors.toList());
             }
         }
+
+        log.info("Future matches for team '{}' not found in database. Starting scrape.", teamName);
         try {
             // 1. Buscar el equipo para obtener su URL
             String searchPageHtml = getHtmlContent(WHOSCORED_SEARCH_URL, teamName);
@@ -124,15 +125,24 @@ public class TeamService extends AbstractWebService {
             String teamPageHtml = getHtmlContent(teamPageUrl);
             Document teamDoc = Jsoup.parse(teamPageHtml);
 
+            // Si el equipo no existe en la base de datos, lo guardamos primero
+            if(team == null) {
+                TeamDTO teamDTO = new TeamDTO();
+                teamDTO.setName(teamDoc.select("h1.team-header").text());
+                teamDTO.setSquad(scrapeSquadData(teamDoc));
+                
+                saveTeam(teamDTO);
+            }
+
+            // Buscar el enlace a la sección de encuentros/fixtures
             Element fixtureLink = teamDoc.selectFirst("a:contains(Encuentros)");
             if (fixtureLink == null) {
+                log.warn("Fixtures link not found for team '{}'.", teamName);
                 throw new RuntimeException("Could not find fixtures link for team: " + teamName);
             }
 
-            String fixturePageUrl = UriComponentsBuilder.fromHttpUrl(BASE_URL).path(fixtureLink.attr("href"))
-                    .toUriString();
-
             // 3. Scrapear la página de encuentros
+            String fixturePageUrl = UriComponentsBuilder.fromHttpUrl(BASE_URL).path(fixtureLink.attr("href")).toUriString();
             String fixturePageHtml = getHtmlContent(fixturePageUrl);
             Document fixtureDoc = Jsoup.parse(fixturePageHtml);
 
@@ -149,39 +159,51 @@ public class TeamService extends AbstractWebService {
 
     @Transactional
     private List<MatchDTO> parseAndSaveFutureMatches(Document doc, String requestedTeamName) {
+        // Log para imprimir el contenido completo del HTML recibido
+        log.debug("Full HTML content received for parsing future matches:\n{}", doc.outerHtml());
+        
         List<Match> futureMatchesToSave = new ArrayList<>();
-        Team team = teamRepository.findByNameContainingIgnoreCase(requestedTeamName).stream().findFirst()
-                .orElse(null);
-
+        Team team = teamRepository.findByNameContainingIgnoreCase(requestedTeamName).stream().findFirst().orElse(null);
+        
         if (team != null) {
-            // Limpiamos los partidos viejos usando el repositorio para evitar datos
-            // obsoletos
+            // Limpiamos los partidos viejos usando el repositorio para evitar datos obsoletos
             matchRepository.deleteByTeam(team);
         } else {
             log.warn("Team '{}' not found in DB. Matches will be returned but not saved.", requestedTeamName);
         }
 
         // El patrón para extraer el array de JS que contiene los datos de los partidos
-        Pattern pattern = Pattern.compile("fixtureMatches: (?<matches>\\[\\[.*\\]\\])", Pattern.DOTALL);
+        Pattern pattern = Pattern.compile("fixtureMatches: (?<matches>\\[\\[.*?)\\]\\s*};", Pattern.DOTALL);
         // Buscamos en todos los scripts de la página
         for (Element script : doc.select("script")) {
             Matcher matcher = pattern.matcher(script.html());
             if (matcher.find()) {
+                log.info("Found 'fixtureMatches' data script.");
                 String matchesData = matcher.group("matches");
-                // Limpiamos y dividimos los datos en partidos individuales
-                String[] matches = matchesData.replaceFirst("\\[\\[", "").replaceFirst("\\]\\]$", "").split("\\],\\[");
+                matchesData = matchesData.replaceAll("\\n", "") // Eliminar saltos de línea
+                    .replaceAll("'", "") // Eliminar comillas simples
+                    .substring(1); // Eliminar el primer corchete
+                String[] matches = matchesData.split("\\],\\[");
+                log.debug("Found {} potential matches in the script data.", matches.length);
+
                 for (String matchStr : matches) {
-                    String[] fields = matchStr.replace("'", "").split(",", -1);
+                    String[] fields = matchStr.split(",");
                     // El campo 10 es el resultado. Si es 'vs', es un partido futuro.
                     if (fields.length > 10 && "vs".equals(fields[10].trim())) {
+                        log.debug("Found future match: {} vs {} on {}", fields[5].trim(), fields[8].trim(),
+                                fields[2].trim());
                         MatchDTO dto = mapFieldsToMatchDTO(fields);
                         if (team != null) {
                             Match matchEntity = mapDTOToMatch(dto);
                             matchEntity.setTeam(team);
                             futureMatchesToSave.add(matchEntity);
                         }
+                    } else {
+                        log.trace("Skipping past match or malformed data row.");
                     }
                 }
+                // Una vez que encontramos el script, no necesitamos seguir buscando.
+                break;
             }
         }
         if (!futureMatchesToSave.isEmpty()) {
