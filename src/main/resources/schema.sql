@@ -126,3 +126,15 @@ CREATE TABLE IF NOT EXISTS predictive_analysis (
     predictive_score DOUBLE PRECISION DEFAULT 0.0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+-- Tabla: matches
+CREATE TABLE IF NOT EXISTS matches (
+    id BIGSERIAL PRIMARY KEY,
+    home_team VARCHAR(255),
+    away_team VARCHAR(255),
+    date VARCHAR(50),
+    competition VARCHAR(255),
+    team_id BIGINT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (team_id) REFERENCES teams(id) ON DELETE CASCADE
+);
