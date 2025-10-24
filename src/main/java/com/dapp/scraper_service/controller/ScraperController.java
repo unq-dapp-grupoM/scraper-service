@@ -1,4 +1,4 @@
-package com.dapp.scraper_service.web;
+package com.dapp.scraper_service.controller;
 
 import com.dapp.scraper_service.model.dto.PlayerDTO;
 import com.dapp.scraper_service.model.dto.MatchDTO;

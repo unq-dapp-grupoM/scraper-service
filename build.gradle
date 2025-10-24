@@ -46,7 +46,18 @@ dependencies {
 	runtimeOnly 'org.hsqldb:hsqldb' // Tu base de datos en memoria principal
 	runtimeOnly 'com.h2database:h2'    // Dependencia para habilitar la consola web
 
+	// PostgreSQL para producción
+    runtimeOnly 'org.postgresql:postgresql'
 
+
+}
+
+tasks.withType(JavaCompile) {
+    options.compilerArgs << '-parameters'
+}
+
+compileTestJava {
+    options.compilerArgs << '-parameters'
 }
 
 tasks.named('test') {

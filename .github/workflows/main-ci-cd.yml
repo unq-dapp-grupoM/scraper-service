@@ -34,6 +34,8 @@ jobs:
 
       - name: Build and run tests
         run: ./gradlew build --info
+        env:
+          SPRING_PROFILES_ACTIVE: test
 
   build-and-push-image:
     name: Build and Push Docker Image
