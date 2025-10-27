@@ -25,30 +25,29 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class AbstractWebServiceTest {
 
-    // Usamos @Spy en una implementación concreta para poder testear la clase
-    // abstracta
+    // We use @Spy on a concrete implementation to test the abstract class
     @Spy
     private TestWebService webService;
 
-    // Mockeamos RestTemplate para no hacer llamadas HTTP reales
+    // We mock RestTemplate to avoid making real HTTP calls
     @Mock
     private RestTemplate restTemplate;
 
-    // Clase de implementación para la prueba
+    // Implementation class for the test
     static class TestWebService extends AbstractWebService {
     }
 
     @BeforeEach
     void setUp() {
-        // Inyectamos el mock de RestTemplate en nuestra instancia de servicio
+        // We inject the RestTemplate mock into our service instance
         ReflectionTestUtils.setField(webService, "restTemplate", restTemplate);
-        // Inyectamos los valores que normalmente vendrían de application.properties
+        // We inject the values that would normally come from application.properties
         ReflectionTestUtils.setField(webService, "apiKey", "test-api-key");
         ReflectionTestUtils.setField(webService, "timeout", 5000);
     }
 
     @Test
-    @DisplayName("Debe construir la URL de ScrapingBee correctamente para una URL simple")
+    @DisplayName("Should build the ScrapingBee URL correctly for a simple URL")
     void whenGetHtmlContentForUrl_thenBuildsCorrectScrapingBeeUrl() throws Exception {
         // Arrange
         String targetUrl = "https://example.com/player/123";
@@ -74,14 +73,14 @@ class AbstractWebServiceTest {
         assertTrue(finalUrl.contains("timeout=5000"));
         assertTrue(finalUrl.contains("premium_proxy=true"));
         assertTrue(finalUrl.contains("wait=2000"));
-        assertFalse(finalUrl.contains("wait_for")); // No debe estar si no se especifica
+        assertFalse(finalUrl.contains("wait_for")); // Should not be present if not specified
     }
 
     @Test
-    @DisplayName("Debe construir la URL de ScrapingBee con wait_for para una búsqueda")
+    @DisplayName("Should build the ScrapingBee URL with wait_for for a search")
     void whenGetHtmlContentForSearch_thenBuildsCorrectScrapingBeeUrlWithWaitFor() throws Exception {
         // Arrange
-        String searchTerm = " Lionel Messi "; // Incluimos espacios para probar el trim
+        String searchTerm = " Lionel Messi "; // We include spaces to test the trim
         String expectedHtml = "<html><body>Search Result</body></html>";
         when(restTemplate.getForObject(any(URI.class), eq(String.class))).thenReturn(expectedHtml);
 
@@ -96,16 +95,16 @@ class AbstractWebServiceTest {
         verify(restTemplate).getForObject(uriCaptor.capture(), eq(String.class));
         String finalUrl = uriCaptor.getValue().toString();
 
-        // Verificamos que la URL objetivo (whoscored) se construyó correctamente
+        // We verify that the target URL (whoscored) was built correctly
         String expectedTargetUrl = "https://es.whoscored.com/?t=Lionel+Messi";
         assertTrue(finalUrl.contains("url=" + URLEncoder.encode(expectedTargetUrl, StandardCharsets.UTF_8.toString())));
 
-        // Verificamos que se añadió el selector de espera
+        // We verify that the wait selector was added
         assertTrue(finalUrl.contains("wait_for=div.search-result"));
     }
 
     @Test
-    @DisplayName("Debe devolver 'Not found' si la respuesta de la API es nula o vacía")
+    @DisplayName("Should return 'Not found' if the API response is null or empty")
     void whenApiResponseIsNull_thenReturnNotFoundConstant() {
         // Arrange
         when(restTemplate.getForObject(any(URI.class), eq(String.class))).thenReturn(null);
@@ -127,7 +126,7 @@ class AbstractWebServiceTest {
     }
 
     @Test
-    @DisplayName("Debe lanzar una RuntimeException si RestTemplate falla")
+    @DisplayName("Should throw a RuntimeException if RestTemplate fails")
     void whenRestTemplateThrowsException_thenThrowRuntimeException() {
         // Arrange
         String targetUrl = "https://failing-url.com";

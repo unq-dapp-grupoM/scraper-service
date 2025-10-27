@@ -27,11 +27,11 @@ public class Player {
     private String nationality;
     private String positions;
 
-    // Un jugador puede tener muchas estadísticas de partidos.
-    // cascade = CascadeType.ALL: Si guardamos/eliminamos un jugador, también se
-    // guardan/eliminan sus estadísticas.
-    // orphanRemoval = true: Si quitamos una estadística de la lista, se elimina de
-    // la BD.
+    // A player can have multiple match stats.
+    // cascade = CascadeType.ALL: If we save/delete a player, their stats are also
+    // saved/delete.
+    // orphanRemoval = true: If we remove a stat from the list, it is removed from
+    // the database.
     @OneToMany(mappedBy = "player", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<PlayerMatchStats> matchStats = new ArrayList<>();
 

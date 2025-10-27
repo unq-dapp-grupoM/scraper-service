@@ -1,7 +1,6 @@
 package com.dapp.scraper_service.controller;
 
 import com.dapp.scraper_service.model.dto.PlayerDTO;
-import com.dapp.scraper_service.model.dto.MatchDTO;
 import java.util.List;
 import com.dapp.scraper_service.model.dto.TeamDTO;
 import com.dapp.scraper_service.service.PlayerService;
@@ -31,11 +30,9 @@ public class ScraperController {
             List<PlayerDTO> player = playerService.getPlayerInfoByName(playerName);
             return ResponseEntity.ok(player);
         } catch (IllegalArgumentException e) {
-            // Si el PlayerService lanza IllegalArgumentException (ej. jugador no
-            // encontrado)
+            // Player not found
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         } catch (Exception e) {
-            // Para cualquier otro error inesperado durante el scraping
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
@@ -46,26 +43,10 @@ public class ScraperController {
             List<TeamDTO> team = teamService.getTeamInfoByName(teamName);
             return ResponseEntity.ok(team);
         } catch (IllegalArgumentException e) {
-            // Si el TeamService lanza IllegalArgumentException (ej. equipo no encontrado)
+            // Team not found
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         } catch (Exception e) {
-            // Para cualquier otro error inesperado durante el scraping
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
-
-    @GetMapping("/futureMatches")
-    public ResponseEntity<List<MatchDTO>> scrapeFutureMatches(@RequestParam("teamName") String teamName) {
-        try {
-            List<MatchDTO> matches = teamService.getFutureMatchesByTeamName(teamName);
-            return ResponseEntity.ok(matches);
-        } catch (IllegalArgumentException e) {
-            // Si el TeamService lanza IllegalArgumentException (ej. equipo no encontrado)
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        } catch (Exception e) {
-            // Para cualquier otro error inesperado durante el scraping
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
-    }
-
 }

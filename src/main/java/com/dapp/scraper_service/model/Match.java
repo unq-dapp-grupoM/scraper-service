@@ -19,8 +19,9 @@ public class Match {
     private String date;
     private String competition;
 
-    // Muchos partidos pueden estar asociados a un equipo.
-    // Usamos FetchType.LAZY para que el equipo no se cargue a menos que se necesite.
+    // Multiple matches can be associated with a team.
+    // We use FetchType.LAZY so that the team isn't loaded unless
+    // needed.
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "team_id") // Esta será la clave foránea en la tabla 'matches'
     private Team team;

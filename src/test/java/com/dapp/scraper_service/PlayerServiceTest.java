@@ -32,8 +32,8 @@ class PlayerServiceTest {
     @Mock
     private PlayerRepository playerRepository;
 
-    // Usamos @Spy para poder mockear el método getHtmlContent de la clase base
-    // mientras probamos la lógica real de PlayerService.
+    // We use @Spy to be able to mock the getHtmlContent method of the base class
+    // while testing the actual logic of PlayerService.
     @Spy
     @InjectMocks
     private PlayerService playerService;
@@ -58,9 +58,9 @@ class PlayerServiceTest {
     }
 
     @Test
-    @DisplayName("Debe devolver DTOs desde la BD si el jugador ya existe")
+    @DisplayName("Should return DTOs from the DB if the player already exists")
     void whenPlayerFoundInDatabase_thenReturnDtoFromDb() {
-        // Arrange: Simulamos que el repositorio encuentra al jugador
+        // Arrange: We simulate that the repository finds the player
         when(playerRepository.findByNameContainingIgnoreCase(playerName)).thenReturn(List.of(testPlayer));
 
         // Act
@@ -73,21 +73,22 @@ class PlayerServiceTest {
         assertEquals("Test FC", result.get(0).getCurrentTeam());
         assertEquals(1, result.get(0).getMatchStats().size());
 
-        // Verificamos que no se hizo ninguna llamada de scraping
+        // We verify that no scraping call was made
         verify(playerService, never()).getHtmlContent(anyString());
         verify(playerService, never()).getHtmlContent(anyString(), anyString());
-        // Verificamos que no se intentó guardar nada
+        // We verify that nothing was attempted to be saved
         verify(playerRepository, never()).save(any(Player.class));
     }
 
     @Test
-    @DisplayName("Debe lanzar una excepción si el jugador no se encuentra en la búsqueda")
+    @DisplayName("Should throw an exception if the player is not found in the search")
     void whenPlayerNotFoundInSearch_thenThrowException() {
         // Arrange
         when(playerRepository.findByNameContainingIgnoreCase(playerName)).thenReturn(Collections.emptyList());
 
-        // Simulamos que la búsqueda no devuelve HTML, lo que hará que el parseo falle
-        // y se lance la excepción esperada.
+        // We simulate that the search does not return HTML, which will cause parsing to
+        // fail
+        // and the expected exception to be thrown.
         doReturn(null).when(playerService).getHtmlContent(contains("search"), eq(playerName));
 
         // Act & Assert
@@ -99,7 +100,7 @@ class PlayerServiceTest {
     }
 
     @Test
-    @DisplayName("Debe guardar al jugador sin estadísticas si el enlace no se encuentra")
+    @DisplayName("Should save the player without stats if the link is not found")
     void whenStatsLinkNotFound_thenSavePlayerWithEmptyStats() {
         // Arrange
         when(playerRepository.findByNameContainingIgnoreCase(playerName)).thenReturn(Collections.emptyList());
@@ -108,8 +109,8 @@ class PlayerServiceTest {
                 "<tr><td></td></tr>" +
                 "<tr><td><a href='/Players/123/Show/Test-Player'>Test Player</a></td></tr>" +
                 "</tbody></table></div></body></html>";
-        // HTML de resumen con la estructura correcta pero sin el enlace a "Estadísticas
-        // del Partido"
+        // Summary HTML with the correct structure but without the link to "Match
+        // Statistics"
         String summaryHtmlNoStatsLink = "<html><body>" +
                 "<div class='col12-lg-10 col12-m-10 col12-s-9 col12-xs-8'>" +
                 "  <div class='col12-lg-6'><span class='info-label'>Nombre:</span> Test Player</div>" +
@@ -126,23 +127,23 @@ class PlayerServiceTest {
         // Assert
         assertNotNull(result);
         assertEquals(1, result.size());
-        // Verificamos que la lista de estadísticas está vacía
+        // We verify that the stats list is empty
         assertTrue(result.get(0).getMatchStats().isEmpty());
 
-        // Verificamos que la llamada a la página de estadísticas nunca ocurrió
+        // We verify that the call to the stats page never occurred
         verify(playerService, never()).getHtmlContent(contains("/History/"));
 
-        // Verificamos que aun así se guardó el jugador
+        // We verify that the player was saved anyway
         verify(playerRepository, times(1)).save(any(Player.class));
     }
 
     @Test
-    @DisplayName("Debe lanzar una RuntimeException si el scraping falla inesperadamente")
+    @DisplayName("Should throw a RuntimeException if scraping fails unexpectedly")
     void whenScrapingFails_thenThrowRuntimeException() {
         // Arrange
         when(playerRepository.findByNameContainingIgnoreCase(playerName)).thenReturn(Collections.emptyList());
 
-        // Simulamos que la llamada de red falla
+        // We simulate that the network call fails
         doThrow(new RuntimeException("Network Error"))
                 .when(playerService).getHtmlContent(anyString(), anyString());
 

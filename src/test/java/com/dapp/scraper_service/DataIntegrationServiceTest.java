@@ -40,7 +40,7 @@ class DataIntegrationServiceTest {
 
     @BeforeEach
     void setUp() {
-        // Configuración de datos de prueba que se usarán en varios tests
+        // Setup of test data to be used in various tests
         testPlayer = new Player();
         testPlayer.setName("Test Player");
 
@@ -66,10 +66,10 @@ class DataIntegrationServiceTest {
 
     @Test
     void whenPlayerNotFound_thenThrowRuntimeException() {
-        // Arrange: Configuramos el mock para que no encuentre al jugador
+        // Arrange: We configure the mock to not find the player
         when(playerRepository.findByNameContainingIgnoreCase("NonExistent Player")).thenReturn(Collections.emptyList());
 
-        // Act & Assert: Verificamos que se lanza la excepción esperada
+        // Act & Assert: We verify that the expected exception is thrown
         Exception exception = assertThrows(RuntimeException.class, () -> {
             dataIntegrationService.convertToMatchStatistics("NonExistent Player");
         });
@@ -79,18 +79,18 @@ class DataIntegrationServiceTest {
 
     @Test
     void whenStatsAlreadyExist_thenReturnExistingStats() {
-        // Arrange: Simulamos que el jugador y sus estadísticas ya existen
+        // Arrange: We simulate that the player and their stats already exist
         String playerName = "Existing Player";
         when(playerRepository.findByNameContainingIgnoreCase(playerName)).thenReturn(List.of(new Player()));
 
         List<MatchStatistics> existingStats = List.of(new MatchStatistics());
         when(matchStatisticsRepository.findByPlayerName(playerName)).thenReturn(existingStats);
 
-        // Act: Llamamos al método
+        // Act: We call the method
         List<MatchStatistics> result = dataIntegrationService.convertToMatchStatistics(playerName);
 
-        // Assert: Verificamos que devuelve los datos existentes y no intenta guardar de
-        // nuevo
+        // Assert: We verify that it returns the existing data and does not try to save
+        // again
         assertEquals(1, result.size());
         assertSame(existingStats, result);
         verify(matchStatisticsRepository, never()).saveAll(any());
@@ -98,15 +98,14 @@ class DataIntegrationServiceTest {
 
     @Test
     void whenNewPlayerStats_thenConvertAndSave() {
-        // Arrange: Simulamos un jugador nuevo sin estadísticas pre-convertidas
+        // Arrange: We simulate a new player without pre-converted stats
         String playerName = "Test Player";
         when(playerRepository.findByNameContainingIgnoreCase(playerName)).thenReturn(List.of(testPlayer));
         when(matchStatisticsRepository.findByPlayerName(playerName)).thenReturn(Collections.emptyList());
-
-        // Act: Llamamos al método
+        // Act: We call the method
         List<MatchStatistics> result = dataIntegrationService.convertToMatchStatistics(playerName);
 
-        // Assert: Verificamos que la conversión es correcta
+        // Assert: We verify that the conversion is correct
         assertNotNull(result);
         assertEquals(1, result.size());
 
@@ -126,13 +125,13 @@ class DataIntegrationServiceTest {
         assertEquals(8.1, convertedStat.getRating());
         assertEquals("2024-2025", convertedStat.getSeason());
 
-        // Verificamos que se intentó guardar el resultado en el repositorio
+        // We verify that an attempt was made to save the result in the repository
         verify(matchStatisticsRepository, times(1)).saveAll(result);
     }
 
     @Test
     void whenParsingFails_thenUseDefaultValues() {
-        // Arrange: Usamos datos malformados
+        // Arrange: We use malformed data
         scrapedStat.setDate("invalid-date");
         scrapedStat.setMinsPlayed("N/A");
         scrapedStat.setPassSuccess("error");
@@ -145,15 +144,15 @@ class DataIntegrationServiceTest {
         // Act
         List<MatchStatistics> result = dataIntegrationService.convertToMatchStatistics(playerName);
 
-        // Assert: Verificamos que se usaron los valores por defecto
+        // Assert: We verify that the default values were used
         assertEquals(1, result.size());
         MatchStatistics convertedStat = result.get(0);
 
-        assertEquals(LocalDate.now(), convertedStat.getMatchDate()); // Fallback de fecha
-        assertEquals(0, convertedStat.getMinutesPlayed()); // Fallback de integer
-        assertEquals(0.0, convertedStat.getPassAccuracy()); // Fallback de double
-        assertEquals(0.0, convertedStat.getRating()); // Fallback de double para null
-        assertEquals("2025-2026", convertedStat.getSeason()); // Fallback de temporada
+        assertEquals(LocalDate.now(), convertedStat.getMatchDate()); // Date fallback
+        assertEquals(0, convertedStat.getMinutesPlayed()); // Integer fallback
+        assertEquals(0.0, convertedStat.getPassAccuracy()); // Double fallback
+        assertEquals(0.0, convertedStat.getRating()); // Double fallback for null
+        assertEquals("2025-2026", convertedStat.getSeason()); // Season fallback
 
         verify(matchStatisticsRepository, times(1)).saveAll(any());
     }

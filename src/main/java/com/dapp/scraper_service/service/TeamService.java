@@ -1,5 +1,5 @@
-// En tu proyecto scraper-service
-package com.dapp.scraper_service.service; // O el paquete que uses
+// In your scraper-service project
+package com.dapp.scraper_service.service;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,7 +13,6 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -38,7 +37,6 @@ public class TeamService extends AbstractWebService {
     private final TeamRepository teamRepository;
     private final MatchRepository matchRepository;
 
-    @Autowired
     public TeamService(TeamRepository teamRepository, MatchRepository matchRepository) {
         this.teamRepository = teamRepository;
         this.matchRepository = matchRepository;
@@ -46,11 +44,11 @@ public class TeamService extends AbstractWebService {
 
     @Cacheable("teams")
     public List<TeamDTO> getTeamInfoByName(String teamName) {
-        // 1. Buscar primero en la base de datos
+        // 1. First, search in the database
         List<Team> teamsFromDb = teamRepository.findByNameContainingIgnoreCase(teamName);
         if (!teamsFromDb.isEmpty()) {
             log.info("{} team(s) found in database for query '{}'. Skipping scrape.", teamsFromDb.size(), teamName);
-            // Convertir la lista de Entidades a una lista de DTOs y devolverla
+            // Convert the list of Entities to a list of DTOs and return it
             return teamsFromDb.stream()
                     .map(this::mapTeamToDTO)
                     .collect(Collectors.toList());
@@ -58,11 +56,11 @@ public class TeamService extends AbstractWebService {
 
         log.info("Team '{}' not found in database. Starting scrape.", teamName);
         try {
-            // 1. Buscar el equipo para obtener su URL
+            // 1. Search for the team to get its URL
             String searchPageHtml = getHtmlContent(WHOSCORED_SEARCH_URL, teamName);
             Document searchDoc = Jsoup.parse(searchPageHtml);
 
-            // Selector de JSoup para encontrar el enlace del equipo
+            // JSoup selector to find the team link
             Element teamLink = searchDoc.select("div.search-result:has(h2:contains(Equipos)) tbody tr:nth-child(2) a")
                     .first();
             if (teamLink == null) {
@@ -72,7 +70,7 @@ public class TeamService extends AbstractWebService {
             String teamPageUrl = UriComponentsBuilder.fromHttpUrl(BASE_URL).path(teamLink.attr("href"))
                     .toUriString();
 
-            // 2. Scrapear la página del equipo
+            // 2. Scrape the team page
             String teamPageHtml = getHtmlContent(teamPageUrl);
             Document teamDoc = Jsoup.parse(teamPageHtml);
 
@@ -80,10 +78,10 @@ public class TeamService extends AbstractWebService {
             teamDTO.setName(teamDoc.select("h1.team-header").text());
             teamDTO.setSquad(scrapeSquadData(teamDoc));
 
-            // Guardar en la base de datos
+            // Save to the database
             saveTeam(teamDTO);
 
-            return List.of(teamDTO); // Devuelve una lista con el nuevo equipo
+            return List.of(teamDTO); // Return a list with the new team
 
         } catch (Exception e) {
             log.error("An error occurred during scraping for team: {}", teamName, e);
@@ -93,15 +91,15 @@ public class TeamService extends AbstractWebService {
 
     @Cacheable("future-matches")
     public List<MatchDTO> getFutureMatchesByTeamName(String teamName) {
-        // 1. Buscar el equipo en la BD
+        // 1. Search for the team in the DB
         log.info("Scraping future matches for team '{}'.", teamName);
         Team team = teamRepository.findByNameContainingIgnoreCase(teamName).stream().findFirst().orElse(null);
 
-        // Si el equipo existe, buscamos sus partidos en el MatchRepository
+        // If the team exists, we search for its matches in the MatchRepository
         if (team != null) {
             List<Match> matchesFromDb = matchRepository.findByTeam(team);
             if (!matchesFromDb.isEmpty()) {
-                // Si hay partidos/matches en la base de datos, los devolvemos
+                // If there are matches in the database, we return them
                 log.info("Future matches for team '{}' found in database. Skipping scrape.", teamName);
                 return matchesFromDb.stream().map(this::mapMatchToDTO).collect(Collectors.toList());
             }
@@ -109,7 +107,7 @@ public class TeamService extends AbstractWebService {
 
         log.info("Future matches for team '{}' not found in database. Starting scrape.", teamName);
         try {
-            // 1. Buscar el equipo para obtener su URL
+            // 1. Search for the team to get its URL
             String searchPageHtml = getHtmlContent(WHOSCORED_SEARCH_URL, teamName);
             Document searchDoc = Jsoup.parse(searchPageHtml);
 
@@ -121,36 +119,37 @@ public class TeamService extends AbstractWebService {
 
             String teamPageUrl = UriComponentsBuilder.fromHttpUrl(BASE_URL).path(teamLink.attr("href")).toUriString();
 
-            // 2. Scrapear la página de resumen del equipo para encontrar el enlace a "Encuentros"
+            // 2. Scrape the team summary page to find the link to "Fixtures"
             String teamPageHtml = getHtmlContent(teamPageUrl);
             Document teamDoc = Jsoup.parse(teamPageHtml);
 
-            // Si el equipo no existe en la base de datos, lo guardamos primero
-            if(team == null) {
+            // If the team doesn't exist in the database, we save it first
+            if (team == null) {
                 TeamDTO teamDTO = new TeamDTO();
                 teamDTO.setName(teamDoc.select("h1.team-header").text());
                 teamDTO.setSquad(scrapeSquadData(teamDoc));
-                
+
                 saveTeam(teamDTO);
             }
 
-            // Buscar el enlace a la sección de encuentros/fixtures
+            // Search for the link to the fixtures section
             Element fixtureLink = teamDoc.selectFirst("a:contains(Encuentros)");
             if (fixtureLink == null) {
                 log.warn("Fixtures link not found for team '{}'.", teamName);
                 throw new RuntimeException("Could not find fixtures link for team: " + teamName);
             }
 
-            // 3. Scrapear la página de encuentros
-            String fixturePageUrl = UriComponentsBuilder.fromHttpUrl(BASE_URL).path(fixtureLink.attr("href")).toUriString();
+            // 3. Scrape the fixtures page
+            String fixturePageUrl = UriComponentsBuilder.fromHttpUrl(BASE_URL).path(fixtureLink.attr("href"))
+                    .toUriString();
             String fixturePageHtml = getHtmlContent(fixturePageUrl);
             Document fixtureDoc = Jsoup.parse(fixturePageHtml);
 
             return parseAndSaveFutureMatches(fixtureDoc, teamName);
 
         } catch (IllegalArgumentException e) {
-            log.warn("Could not find team '{}'.", teamName, e);
-            throw e; // Re-lanzar para que el controller lo maneje como 404
+            log.warn("Could not find team '{}'.", teamName, e); // Re-throw so the controller can handle it as a 404
+            throw e;
         } catch (Exception e) {
             log.error("An error occurred during scraping for future matches of team: {}", teamName, e);
             throw new RuntimeException("An unexpected error occurred while fetching future matches.", e);
@@ -159,36 +158,36 @@ public class TeamService extends AbstractWebService {
 
     @Transactional
     private List<MatchDTO> parseAndSaveFutureMatches(Document doc, String requestedTeamName) {
-        // Log para imprimir el contenido completo del HTML recibido
+        // Log to print the full HTML content received
         log.debug("Full HTML content received for parsing future matches:\n{}", doc.outerHtml());
-        
+
         List<Match> futureMatchesToSave = new ArrayList<>();
         Team team = teamRepository.findByNameContainingIgnoreCase(requestedTeamName).stream().findFirst().orElse(null);
-        
+
         if (team != null) {
-            // Limpiamos los partidos viejos usando el repositorio para evitar datos obsoletos
+            // We clear old matches using the repository to avoid outdated data
             matchRepository.deleteByTeam(team);
         } else {
             log.warn("Team '{}' not found in DB. Matches will be returned but not saved.", requestedTeamName);
         }
 
-        // El patrón para extraer el array de JS que contiene los datos de los partidos
+        // The pattern to extract the JS array containing match data
         Pattern pattern = Pattern.compile("fixtureMatches: (?<matches>\\[\\[.*?)\\]\\s*};", Pattern.DOTALL);
-        // Buscamos en todos los scripts de la página
+        // We search in all the scripts on the page
         for (Element script : doc.select("script")) {
             Matcher matcher = pattern.matcher(script.html());
             if (matcher.find()) {
                 log.info("Found 'fixtureMatches' data script.");
                 String matchesData = matcher.group("matches");
-                matchesData = matchesData.replaceAll("\\n", "") // Eliminar saltos de línea
-                    .replaceAll("'", "") // Eliminar comillas simples
-                    .substring(1); // Eliminar el primer corchete
+                matchesData = matchesData.replaceAll("\\n", "") // Remove newlines
+                        .replaceAll("'", "") // Remove single quotes
+                        .substring(1); // Remove the first bracket
                 String[] matches = matchesData.split("\\],\\[");
                 log.debug("Found {} potential matches in the script data.", matches.length);
 
                 for (String matchStr : matches) {
                     String[] fields = matchStr.split(",");
-                    // El campo 10 es el resultado. Si es 'vs', es un partido futuro.
+                    // Field 10 is the result. If it's 'vs', it's a future match.
                     if (fields.length > 10 && "vs".equals(fields[10].trim())) {
                         log.debug("Found future match: {} vs {} on {}", fields[5].trim(), fields[8].trim(),
                                 fields[2].trim());
@@ -202,7 +201,7 @@ public class TeamService extends AbstractWebService {
                         log.trace("Skipping past match or malformed data row.");
                     }
                 }
-                // Una vez que encontramos el script, no necesitamos seguir buscando.
+                // Once we find the script, we don't need to search anymore.
                 break;
             }
         }
@@ -254,10 +253,10 @@ public class TeamService extends AbstractWebService {
 
         team.setName(teamDTO.getName());
 
-        // Limpiar plantilla vieja para evitar duplicados
+        // Clear old squad to avoid duplicates
         team.getSquad().clear();
 
-        // Mapear DTOs de jugadores a Entidades
+        // Map player DTOs to Entities
         for (TeamPlayerDTO playerDTO : teamDTO.getSquad()) {
             TeamPlayer player = new TeamPlayer();
             player.setName(playerDTO.getName());
@@ -276,7 +275,7 @@ public class TeamService extends AbstractWebService {
             player.setAerialsWonPerGame(playerDTO.getAerialsWonPerGame());
             player.setManOfTheMatch(playerDTO.getManOfTheMatch());
             player.setRating(playerDTO.getRating());
-            player.setTeam(team); // Establecer la relación bidireccional
+            player.setTeam(team); // Set the bidirectional relationship
             team.getSquad().add(player);
         }
 
@@ -314,7 +313,7 @@ public class TeamService extends AbstractWebService {
     }
 
     private MatchDTO mapFieldsToMatchDTO(String[] fields) {
-        // Índices basados en el array de JS del HTML de ejemplo
+        // Indices based on the JS array from the example HTML
         return MatchDTO.builder()
                 .homeTeam(fields[5].trim())
                 .awayTeam(fields[8].trim())

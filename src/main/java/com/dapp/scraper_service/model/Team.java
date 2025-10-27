@@ -20,9 +20,9 @@ public class Team {
     @Column(unique = true, nullable = false)
     private String name;
 
-    // Un equipo tiene una plantilla de muchos jugadores.
-    // Si guardamos/eliminamos un equipo, también se guardan/eliminan los jugadores
-    // de su plantilla.
+    // A team has a roster of many players.
+    // If we save/delete a team, the players
+    // in its roster are also saved/delete.
     @OneToMany(mappedBy = "team", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<TeamPlayer> squad = new ArrayList<>();
 

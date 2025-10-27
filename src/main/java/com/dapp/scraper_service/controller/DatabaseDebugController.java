@@ -32,7 +32,7 @@ public class DatabaseDebugController {
         Map<String, Object> result = new HashMap<>();
 
         try {
-            // Listar todas las tablas en la base de datos
+            // List all tables in the database
             List<String> tables = jdbcTemplate.queryForList(
                     "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'",
                     String.class);
@@ -53,11 +53,11 @@ public class DatabaseDebugController {
         Map<String, Object> result = new HashMap<>();
 
         try {
-            // Leer el archivo schema.sql desde resources
+            // Read the schema.sql file from resources
             Resource resource = new ClassPathResource("schema.sql");
             String sqlScript = new String(Files.readAllBytes(Paths.get(resource.getURI())));
 
-            // Dividir el script en sentencias individuales
+            // Split the script into individual statements
             String[] sqlStatements = sqlScript.split(";");
 
             List<String> executedTables = new ArrayList<>();
@@ -68,7 +68,7 @@ public class DatabaseDebugController {
                 try {
                     jdbcTemplate.execute(sql.trim());
 
-                    // Extraer nombre de tabla si es CREATE TABLE
+                    // Extract table name if it's a CREATE TABLE
                     if (sql.toUpperCase().contains("CREATE TABLE")) {
                         String tableName = extractTableName(sql);
                         if (tableName != null) {
@@ -76,7 +76,7 @@ public class DatabaseDebugController {
                         }
                     }
                 } catch (Exception e) {
-                    // Ignorar errores de "tabla ya existe"
+                    // Ignore "table already exists" errors
                     if (!e.getMessage().contains("already exists")) {
                         result.put("warning", "Some statements had issues: " + e.getMessage());
                     }
@@ -86,7 +86,7 @@ public class DatabaseDebugController {
             result.put("status", "SUCCESS");
             result.put("executedTables", executedTables);
             result.put("totalStatements", sqlStatements.length);
-            result.put("message", "Schema.sql ejecutado completamente");
+            result.put("message", "Schema.sql executed successfully");
 
         } catch (Exception e) {
             result.put("status", "ERROR");
@@ -97,7 +97,7 @@ public class DatabaseDebugController {
     }
 
     private String extractTableName(String sql) {
-        // Extraer nombre de tabla del CREATE TABLE
+        // Extract table name from CREATE TABLE
         Pattern pattern = Pattern.compile("CREATE TABLE (?:IF NOT EXISTS )?([a-zA-Z_][a-zA-Z0-9_]*)");
         Matcher matcher = pattern.matcher(sql.toUpperCase());
         if (matcher.find()) {

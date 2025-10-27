@@ -1,4 +1,4 @@
-// En tu proyecto scraper-service
+// In your scraper-service project
 package com.dapp.scraper_service.service;
 
 import org.slf4j.Logger;
@@ -66,7 +66,7 @@ public abstract class AbstractWebService {
                     .queryParam("country_code", "es")
                     .queryParam("timeout", timeout)
                     .queryParam("premium_proxy", "true");
-            // Removemos los headers problemáticos por ahora
+            // We remove the problematic headers for now
 
             if (renderJavascript) {
                 builder.queryParam("wait", "2000");

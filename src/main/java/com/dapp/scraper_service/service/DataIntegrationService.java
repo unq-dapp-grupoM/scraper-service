@@ -26,7 +26,7 @@ public class DataIntegrationService {
     }
 
     /**
-     * Convierte datos de PlayerMatchStats (scraping) a MatchStatistics (análisis)
+     * Converts PlayerMatchStats (scraping) data to MatchStatistics (analysis)
      */
     public List<MatchStatistics> convertToMatchStatistics(String playerName) {
         List<Player> players = playerRepository.findByNameContainingIgnoreCase(playerName);
@@ -36,7 +36,7 @@ public class DataIntegrationService {
 
         Player player = players.get(0);
 
-        // Verificar si ya existen datos convertidos
+        // Check if converted data already exists
         List<MatchStatistics> existingStats = matchStatisticsRepository.findByPlayerName(playerName);
         if (!existingStats.isEmpty()) {
             return existingStats;
@@ -61,21 +61,21 @@ public class DataIntegrationService {
         analysisStat.setResult(determineResult(scrapedStat.getScore(), scrapedStat.getOpponent()));
         analysisStat.setPosition(convertPosition(scrapedStat.getPosition()));
 
-        // Convertir estadísticas básicas
+        // Convert basic statistics
         analysisStat.setMinutesPlayed(parseInteger(scrapedStat.getMinsPlayed()));
         analysisStat.setGoals(parseInteger(scrapedStat.getGoals()));
         analysisStat.setAssists(parseInteger(scrapedStat.getAssists()));
         analysisStat.setYellowCards(parseInteger(scrapedStat.getYellowCards()));
         analysisStat.setRedCards(parseInteger(scrapedStat.getRedCards()));
 
-        // Convertir estadísticas detalladas
+        // Convert detailed statistics
         analysisStat.setShots(parseInteger(scrapedStat.getShots()));
         analysisStat.setPassAccuracy(parseDouble(scrapedStat.getPassSuccess()));
         analysisStat.setAerialDuels(parseInteger(scrapedStat.getAerialsWon()));
         analysisStat.setRating(parseDouble(scrapedStat.getRating()));
 
-        // Metadatos
-        analysisStat.setLeague("Unknown"); // Puedes extraer esto del scraping si está disponible
+        // Metadata
+        analysisStat.setLeague("Unknown"); // You can extract this from scraping if available
         analysisStat.setSeason(extractSeason(scrapedStat.getDate()));
 
         return analysisStat;
@@ -83,22 +83,22 @@ public class DataIntegrationService {
 
     private LocalDate parseDate(String dateStr) {
         try {
-            // Asumiendo formato "dd/MM/yyyy" o similar
+            // Assuming "dd/MM/yyyy" format or similar
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
             return LocalDate.parse(dateStr, formatter);
         } catch (Exception e) {
-            return LocalDate.now(); // Fallback
+            return LocalDate.now(); // Fallback on error
         }
     }
 
     private String determineResult(String score, String opponent) {
-        // Lógica simple para determinar si fue local (H) o visitante (A)
-        // Esto depende de cómo estructuren los nombres de oponentes en tu scraping
-        return "H"; // Placeholder - implementar lógica real
+        // Simple logic to determine if it was home (H) or away (A)
+        // This depends on how opponent names are structured in your scraping
+        return "H"; // Placeholder - implement real logic
     }
 
     private String convertPosition(String position) {
-        // Convertir posiciones específicas a formatos estándar
+        // Convert specific positions to standard formats
         if (position.contains("DL") || position.contains("Defensa"))
             return "DF";
         if (position.contains("MP") || position.contains("Mediocampista"))
@@ -128,7 +128,7 @@ public class DataIntegrationService {
         try {
             LocalDate date = parseDate(dateStr);
             int year = date.getYear();
-            // Asumiendo temporada europea (agosto a mayo)
+            // Assuming European season (August to May)
             return date.getMonthValue() >= 8 ? year + "-" + (year + 1) : (year - 1) + "-" + year;
         } catch (Exception e) {
             return "2024";

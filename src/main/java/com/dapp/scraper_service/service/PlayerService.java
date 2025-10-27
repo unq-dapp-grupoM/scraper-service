@@ -25,7 +25,7 @@ public class PlayerService extends AbstractWebService {
 
     private static final Logger log = LoggerFactory.getLogger(PlayerService.class);
 
-    // URL de la API interna de búsqueda de WhoScored
+    // WhoScored internal search API URL
     private static final String WHOSCORED_SEARCH_URL = BASE_URL + "search/";
 
     private final PlayerRepository playerRepository;
@@ -36,12 +36,12 @@ public class PlayerService extends AbstractWebService {
 
     @Cacheable("players")
     public List<PlayerDTO> getPlayerInfoByName(String playerName) {
-        // 1. Buscar primero en la base de datos
+        // 1. First, search in the database
         List<Player> playersFromDb = playerRepository.findByNameContainingIgnoreCase(playerName);
         if (!playersFromDb.isEmpty()) {
             log.info("{} player(s) found in database for query '{}'. Skipping scrape.", playersFromDb.size(),
                     playerName);
-            // Convertir la lista de Entidades a una lista de DTOs y devolverla
+            // Convert the list of Entities to a list of DTOs and return it
             return playersFromDb.stream()
                     .map(this::mapPlayerToDTO)
                     .collect(Collectors.toList());
@@ -49,19 +49,18 @@ public class PlayerService extends AbstractWebService {
 
         log.info("Player '{}' not found in database. Starting scrape.", playerName);
         try {
-            // 1. Scrapear la página de búsqueda. Ahora ScraperAPI manejará la sesión y las
-            // cookies.
+            // 1. Scrape the search page.
             String searchResultHtml = getHtmlContent(WHOSCORED_SEARCH_URL, playerName);
             Document searchDoc = Jsoup.parse(searchResultHtml);
-            // Usamos el selector que traduce la lógica de Playwright que funcionaba
+            // Use the selector that translates the working Playwright logic
             Element playerLink = searchDoc
                     .select("div.search-result:has(h2:contains(Jugadores)) tbody tr:nth-child(2) a").first();
 
             if (playerLink == null) {
-                throw new IllegalArgumentException("Player with name '" + playerName + "' not found in search.");
+                throw new IllegalArgumentException("Player '" + playerName + "' not found in search results.");
             }
 
-            // 2. Scrapear la página de resumen del jugador
+            // 2. Scrape the player summary page
             String playerSummaryUrl = UriComponentsBuilder.fromHttpUrl(BASE_URL).path(playerLink.attr("href"))
                     .toUriString();
             String playerSummaryHtml = getHtmlContent(playerSummaryUrl);
@@ -69,7 +68,7 @@ public class PlayerService extends AbstractWebService {
 
             PlayerDTO playerDTO = scrapePlayerData(summaryDoc);
 
-            // 3. Encontrar el enlace a la página de estadísticas y scrapear esa página
+            // 3. Find the link to the stats page and scrape it
             Element statsLink = summaryDoc.select("a:contains(Estadísticas del Partido)").first();
             if (statsLink != null) {
                 String playerStatsUrl = UriComponentsBuilder.fromHttpUrl(BASE_URL).path(statsLink.attr("href"))
@@ -82,11 +81,11 @@ public class PlayerService extends AbstractWebService {
                 playerDTO.setMatchStats(new ArrayList<>());
             }
 
-            // Guardar en la base de datos
+            // Save to database
             savePlayer(playerDTO);
 
-            // Devolvemos una lista que contiene el único jugador scrapeado
-            return List.of(playerDTO); // Devuelve una lista con el nuevo jugador
+            // Return a list containing the single scraped player
+            return List.of(playerDTO);
         } catch (Exception e) {
             log.error("An unexpected error occurred during scraping for player: {}", playerName, e);
             throw new RuntimeException("An unexpected error occurred while fetching player data.", e);
@@ -112,7 +111,7 @@ public class PlayerService extends AbstractWebService {
     }
 
     private PlayerMatchStatsDTO mapStatsToDTO(PlayerMatchStats stats) {
-        // Usamos el builder que ya tienes en el DTO
+        // Use the builder from the DTO
         return PlayerMatchStatsDTO.builder()
                 .opponent(stats.getOpponent()).score(stats.getScore()).date(stats.getDate())
                 .position(stats.getPosition()).minsPlayed(stats.getMinsPlayed()).goals(stats.getGoals())
@@ -123,11 +122,11 @@ public class PlayerService extends AbstractWebService {
 
     @Transactional
     protected void savePlayer(PlayerDTO playerDTO) {
-        // Usamos orElse para crear uno nuevo si no existe
+        // Use orElse to create a new one if it doesn't exist
         Player player = playerRepository.findByNameContainingIgnoreCase(playerDTO.getName()).stream().findFirst()
                 .orElse(new Player());
 
-        // Mapear datos del DTO a la Entidad
+        // Map data from DTO to Entity
         player.setName(playerDTO.getName());
         player.setCurrentTeam(playerDTO.getCurrentTeam());
         player.setShirtNumber(playerDTO.getShirtNumber());
@@ -136,10 +135,10 @@ public class PlayerService extends AbstractWebService {
         player.setNationality(playerDTO.getNationality());
         player.setPositions(playerDTO.getPositions());
 
-        // Limpiar estadísticas viejas para evitar duplicados
+        // Clear old stats to avoid duplicates
         player.getMatchStats().clear();
 
-        // Mapear estadísticas del DTO a la Entidad
+        // Map stats from DTO to Entity
         for (PlayerMatchStatsDTO statsDTO : playerDTO.getMatchStats()) {
             PlayerMatchStats stats = new PlayerMatchStats();
             stats.setOpponent(statsDTO.getOpponent());
@@ -155,7 +154,7 @@ public class PlayerService extends AbstractWebService {
             stats.setPassSuccess(statsDTO.getPassSuccess());
             stats.setAerialsWon(statsDTO.getAerialsWon());
             stats.setRating(statsDTO.getRating());
-            stats.setPlayer(player); // Establecer la relación bidireccional
+            stats.setPlayer(player); // Set the bidirectional relationship
             player.getMatchStats().add(stats);
         }
 
@@ -185,7 +184,7 @@ public class PlayerService extends AbstractWebService {
 
     private String extractValueFromPlayerInfo(Element context, String label) {
         try {
-            // Selector para encontrar el div que contiene el label y el valor
+            // Selector to find the div containing the label and value
             Element infoDiv = context.select(String.format("div.col12-lg-6:has(span.info-label:contains(%s:))", label))
                     .first();
             if (infoDiv != null) {

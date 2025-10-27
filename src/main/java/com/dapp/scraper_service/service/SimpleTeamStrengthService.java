@@ -9,12 +9,12 @@ public class SimpleTeamStrengthService {
     private final Map<String, Double> teamFactors = new HashMap<>();
 
     public SimpleTeamStrengthService() {
-        // Inicializar con equipos conocidos
+        // Initialize with known teams
         initializeTeamFactors();
     }
 
     private void initializeTeamFactors() {
-        // Equipos FUERTES (factor < 1.0)
+        // STRONG teams (factor < 1.0)
         teamFactors.put("real madrid", 0.6);
         teamFactors.put("barcelona", 0.6);
         teamFactors.put("manchester city", 0.6);
@@ -24,7 +24,7 @@ public class SimpleTeamStrengthService {
         teamFactors.put("boca juniors", 0.7);
         teamFactors.put("river plate", 0.7);
 
-        // Equipos DÉBILES (factor > 1.0)
+        // WEAK teams (factor > 1.0)
         teamFactors.put("aldosivi", 1.3);
         teamFactors.put("patronato", 1.3);
         teamFactors.put("sarmiento", 1.2);
@@ -38,18 +38,18 @@ public class SimpleTeamStrengthService {
 
         String key = opponent.toLowerCase();
 
-        // Buscar coincidencia exacta
+        // Search for an exact match
         if (teamFactors.containsKey(key)) {
             return teamFactors.get(key);
         }
 
-        // Buscar por contenido
+        // Search by content
         for (String team : teamFactors.keySet()) {
             if (key.contains(team) || team.contains(key)) {
                 return teamFactors.get(team);
             }
         }
 
-        return 1.0; // Neutral si no se encuentra
+        return 1.0; // Neutral if not found
     }
 }

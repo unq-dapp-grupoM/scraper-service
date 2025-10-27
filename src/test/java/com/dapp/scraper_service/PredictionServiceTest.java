@@ -53,7 +53,7 @@ class PredictionServiceTest {
 
     @BeforeEach
     void setUp() {
-        // Configurar datos de prueba
+        // Configure test data
         historicalMatches = new ArrayList<>();
         historicalMatches.add(createMatch("H", "Opponent A", "FW", 8.0, 90, "2024"));
         historicalMatches.add(createMatch("A", "Opponent B", "FW", 7.0, 90, "2024"));
@@ -68,11 +68,11 @@ class PredictionServiceTest {
         testMetrics.setRatingDeviation(0.8);
         testMetrics.setPerformanceTrend(1.2);
 
-        // Configurar mocks
+        // Configure mocks
         when(predictiveAnalysisRepository.save(any(PredictiveAnalysis.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
-        // NUEVO: Configurar mock para teamStrengthService
+        // NEW: Configure mock for teamStrengthService
         when(teamStrengthService.getOpponentFactor(anyString())).thenReturn(1.0);
     }
 
@@ -90,7 +90,7 @@ class PredictionServiceTest {
     }
 
     @Test
-    @DisplayName("Debe filtrar datos históricos por la temporada actual")
+    @DisplayName("Should filter historical data by the current season")
     void whenPredicting_thenUsesOnlyCurrentSeasonDataForFactors() {
         // Arrange
         when(matchStatisticsRepository.findByPlayerName(playerName)).thenReturn(historicalMatches);
@@ -100,8 +100,8 @@ class PredictionServiceTest {
         predictionService.predictPerformance(playerName, "Opponent D", true, "FW");
 
         // Assert
-        // Verificamos que el calculador de métricas recibe solo los 3 partidos de la
-        // temporada 2024
+        // We verify that the metrics calculator receives only the 3 matches from the
+        // 2024 season
         ArgumentCaptor<List<MatchStatistics>> captor = ArgumentCaptor.forClass(List.class);
         verify(performanceCalculator).calculateMetrics(captor.capture());
         assertEquals(3, captor.getValue().size());
@@ -109,7 +109,7 @@ class PredictionServiceTest {
     }
 
     @Test
-    @DisplayName("Debe calcular todas las predicciones y factores correctamente")
+    @DisplayName("Should calculate all predictions and factors correctly")
     void whenPredictPerformance_thenCalculatesAllValuesCorrectly() {
         // Arrange
         when(matchStatisticsRepository.findByPlayerName(playerName)).thenReturn(historicalMatches);
@@ -135,7 +135,7 @@ class PredictionServiceTest {
         // High Rating Probability (z-score = (7.5 - 8.0) / 0.8 = -0.625) -> ~0.73
         assertTrue(result.getHighRatingProbability() > 0.7 && result.getHighRatingProbability() < 0.75);
 
-        // Full Match Probability: 2 de 3 partidos de la temporada 2024 tienen >= 85
+        // Full Match Probability: 2 out of 3 matches from the 2024 season have >= 85
         // mins (90, 90, 80)
         assertEquals(2.0 / 3.0, result.getFullMatchProbability(), 0.001);
 
@@ -160,9 +160,9 @@ class PredictionServiceTest {
     }
 
     @Test
-    @DisplayName("Debe devolver factores neutrales si no hay datos históricos específicos")
+    @DisplayName("Should return neutral factors if there is no specific historical data")
     void whenNoSpecificHistoricalData_thenReturnNeutralFactors() {
-        // Arrange: No hay partidos contra "Opponent D" ni en posición "GK"
+        // Arrange: No matches against "Opponent D" or in position "GK"
         when(matchStatisticsRepository.findByPlayerName(playerName)).thenReturn(historicalMatches);
         when(performanceCalculator.calculateMetrics(anyList())).thenReturn(testMetrics);
 
@@ -178,11 +178,11 @@ class PredictionServiceTest {
     }
 
     @Test
-    @DisplayName("Debe manejar correctamente una lista de partidos vacía")
+    @DisplayName("Should correctly handle an empty match list")
     void whenHistoricalDataIsEmpty_thenReturnsBasePrediction() {
         // Arrange
         when(matchStatisticsRepository.findByPlayerName(anyString())).thenReturn(Collections.emptyList());
-        // Simulamos métricas vacías
+        // We simulate empty metrics
         when(performanceCalculator.calculateMetrics(anyList())).thenReturn(new PerformanceMetrics());
 
         // Act
@@ -195,8 +195,7 @@ class PredictionServiceTest {
         assertEquals(0.0, result.getFullMatchProbability());
         assertEquals("LOW", result.getPerformancePrediction());
 
-        // Verificamos explícitamente que 'save' fue llamado para persistir el análisis
-        // base
+        // We explicitly verify that 'save' was called to persist the base analysis
         verify(predictiveAnalysisRepository, times(1)).save(any(PredictiveAnalysis.class));
     }
 }

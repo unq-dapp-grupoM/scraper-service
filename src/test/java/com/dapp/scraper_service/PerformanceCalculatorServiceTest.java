@@ -37,7 +37,7 @@ class PerformanceCalculatorServiceTest {
 
     @BeforeEach
     void setUp() {
-        // Crear una lista de partidos de prueba
+        // Create a list of test matches
         matches = new ArrayList<>();
         matches.add(createMatch("Test Player", "2024-09-01", 90, 1, 0, 7.5, 3, 80.0, 2));
         matches.add(createMatch("Test Player", "2024-09-08", 90, 0, 1, 8.5, 1, 90.0, 1));
@@ -60,7 +60,7 @@ class PerformanceCalculatorServiceTest {
     }
 
     @Test
-    @DisplayName("Debe devolver métricas vacías si la lista de partidos está vacía")
+    @DisplayName("Should return empty metrics if the match list is empty")
     void whenMatchListIsEmpty_thenReturnEmptyMetrics() {
         // Act
         PerformanceMetrics result = calculatorService.calculateMetrics(Collections.emptyList());
@@ -72,7 +72,7 @@ class PerformanceCalculatorServiceTest {
     }
 
     @Test
-    @DisplayName("Debe devolver métricas vacías pero con nombre si no se jugaron minutos")
+    @DisplayName("Should return empty metrics but with name if no minutes were played")
     void whenNoMinutesPlayed_thenReturnEmptyMetricsWithPlayerName() {
         // Arrange
         List<MatchStatistics> zeroMinuteMatches = List.of(
@@ -89,9 +89,9 @@ class PerformanceCalculatorServiceTest {
     }
 
     @Test
-    @DisplayName("Debe calcular todas las métricas correctamente para una lista de partidos válida")
+    @DisplayName("Should calculate all metrics correctly for a valid list of matches")
     void whenGivenValidMatches_thenCalculateAllMetricsCorrectly() {
-        // Arrange: Configurar el mock solo para este test
+        // Arrange: Configure the mock just for this test
         when(metricsRepository.save(any(PerformanceMetrics.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         // Act
@@ -141,17 +141,17 @@ class PerformanceCalculatorServiceTest {
     }
 
     @Test
-    @DisplayName("Debe calcular la tendencia de rendimiento correctamente")
+    @DisplayName("Should calculate the performance trend correctly")
     void whenCalculatingPerformanceTrend_thenCompareRecentVsOlderMatches() {
-        // Arrange: Configurar el mock solo para este test
+        // Arrange: Configure the mock just for this test
         when(metricsRepository.save(any(PerformanceMetrics.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        // Arrange: Añadimos más partidos para tener un historial más largo
+        // Arrange: Add more matches to have a longer history
         matches.add(0, createMatch("Test Player", "2024-08-15", 90, 0, 0, 6.0, 1, 70.0, 1));
         matches.add(0, createMatch("Test Player", "2024-08-22", 90, 1, 0, 7.0, 2, 75.0, 2));
-        // Ahora hay 5 partidos. n = min(5, 5/2) = 2
-        // Recientes: 9.5, 8.5 -> Avg = 9.0
-        // Antiguos: 6.0, 7.0 -> Avg = 6.5
+        // Now there are 5 matches. n = min(5, 5/2) = 2
+        // Recent: 9.5, 8.5 -> Avg = 9.0
+        // Older: 6.0, 7.0 -> Avg = 6.5
         // Trend = 9.0 - 6.5 = 2.5
 
         // Act
@@ -162,10 +162,10 @@ class PerformanceCalculatorServiceTest {
     }
 
     @Test
-    @DisplayName("Debe devolver una desviación de 1.0 si hay menos de 2 partidos")
+    @DisplayName("Should return a deviation of 1.0 if there are fewer than 2 matches")
     void whenLessThanTwoMatches_thenRatingDeviationIsOne() {
         // Arrange
-        // Configurar el mock para que devuelva el objeto que se le pasa para guardar
+        // Configure the mock to return the object passed to it for saving
         when(metricsRepository.save(any(PerformanceMetrics.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         List<MatchStatistics> singleMatch = List.of(matches.get(0));
@@ -178,9 +178,9 @@ class PerformanceCalculatorServiceTest {
     }
 
     @Test
-    @DisplayName("Debe llamar al método save del repositorio al final")
+    @DisplayName("Should call the repository's save method at the end")
     void whenMetricsAreCalculated_thenRepositorySaveIsCalled() {
-        // Arrange: Configurar el mock solo para este test
+        // Arrange: Configure the mock just for this test
         when(metricsRepository.save(any(PerformanceMetrics.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         // Arrange

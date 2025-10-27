@@ -1,4 +1,5 @@
 package com.dapp.scraper_service.model;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
@@ -28,7 +29,7 @@ public class PlayerMatchStats {
     private String aerialsWon;
     private String rating;
 
-    // Muchas estadísticas de partido pertenecen a un solo jugador.
+    // Many match statistics belong to a single player.
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "player_id", nullable = false) // Esta será la columna de clave foránea
     @JsonIgnore // Evita problemas de serialización infinita

@@ -54,7 +54,6 @@ public class PerformanceMetrics {
         this.analysisDate = LocalDate.now();
     }
 
-    // Constructors, getters and setters
     public PerformanceMetrics() {
     }
 
@@ -86,7 +85,6 @@ public class PerformanceMetrics {
         return offensiveImpact != null ? offensiveImpact : 0.0;
     }
 
-    // Asegúrate de que todas las métricas tengan valores por defecto
     public Double getGoalsPerMatch() {
         return goalsPerMatch != null ? goalsPerMatch : 0.0;
     }

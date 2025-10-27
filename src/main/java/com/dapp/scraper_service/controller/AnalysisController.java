@@ -47,7 +47,7 @@ public class AnalysisController {
             @RequestParam(name = "season", defaultValue = "2024") String season) {
 
         try {
-            // Conversión automática antes de calcular métricas
+            // Automatic conversion before calculating metrics
             List<MatchStatistics> matches = dataIntegrationService.convertToMatchStatistics(player);
 
             if (matches.isEmpty()) {
@@ -74,7 +74,7 @@ public class AnalysisController {
             @RequestParam(name = "position") String position) {
 
         try {
-            // Conversión automática antes de predecir
+            // Automatic conversion before predicting
             List<MatchStatistics> matches = dataIntegrationService.convertToMatchStatistics(player);
 
             if (matches.isEmpty()) {
@@ -104,7 +104,7 @@ public class AnalysisController {
         try {
             List<MatchStatistics> allMatches = dataIntegrationService.convertToMatchStatistics(player);
 
-            // Encontrar la temporada más reciente automáticamente
+            // Find the latest season automatically
             Optional<String> latestSeason = allMatches.stream()
                     .map(MatchStatistics::getSeason)
                     .filter(Objects::nonNull)
@@ -125,7 +125,7 @@ public class AnalysisController {
                 }
             }
 
-            // También mostrar todas las temporadas disponibles para comparación
+            // Also show all available seasons for comparison
             Map<String, List<MatchStatistics>> matchesBySeason = allMatches.stream()
                     .filter(m -> m.getSeason() != null && !m.getSeason().isEmpty())
                     .collect(Collectors.groupingBy(MatchStatistics::getSeason));

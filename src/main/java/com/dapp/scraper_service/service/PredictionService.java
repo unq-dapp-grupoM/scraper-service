@@ -82,12 +82,12 @@ public class PredictionService {
     }
 
     private Double calculateHighRatingProbability(PerformanceMetrics metrics) {
-        // Probability of getting rating > 7.5 based on historical performance
+        // Probability of getting a rating > 7.5 based on historical performance
         double averageRating = metrics.getAverageRating();
         double ratingDeviation = metrics.getRatingDeviation() != null ? metrics.getRatingDeviation() : 1.0; // Default
                                                                                                             // deviation
 
-        // Using normal distribution approximation
+        // Using a normal distribution approximation
         double zScore = (7.5 - averageRating) / ratingDeviation;
         double probability = 1 - cumulativeDistributionFunction(zScore);
 
@@ -96,20 +96,20 @@ public class PredictionService {
 
     private Double calculateFullMatchProbability(List<MatchStatistics> historicalData) {
         long fullMatches = historicalData.stream()
-                .filter(m -> m.getMinutesPlayed() >= 85) // Consider 85+ mins as full match
+                .filter(m -> m.getMinutesPlayed() >= 85) // Consider 85+ mins as a full match
                 .count();
 
         return historicalData.isEmpty() ? 0.0 : (double) fullMatches / historicalData.size();
     }
 
     private Double calculateOpponentFactor(List<MatchStatistics> historicalData, String opponent) {
-        // Filter matches against this specific opponent
+        // Filter for matches against this specific opponent
         List<MatchStatistics> matchesVsOpponent = historicalData.stream()
                 .filter(m -> opponent.equalsIgnoreCase(m.getOpponent()))
                 .collect(Collectors.toList());
 
         if (matchesVsOpponent.isEmpty()) {
-            return 1.0; // Neutral factor if no historical data
+            return 1.0; // Neutral factor if there is no historical data
         }
 
         // Calculate average performance against this opponent
@@ -124,18 +124,19 @@ public class PredictionService {
                 .average()
                 .orElse(6.0);
 
-        // Return performance ratio (>1 = better vs this opponent)
+        // Return performance ratio (>1 means better performance vs this opponent)
         return avgRatingVsOpponent / overallAvgRating;
     }
 
-    private Double calculatePositionFactor(List<MatchStatistics> historicalData, String position) {
-        // Filter matches in this specific position
+    private Double calculatePositionFactor(List<MatchStatistics> historicalData, String position) { // Filter for
+                                                                                                    // matches in this
+                                                                                                    // specific position
         List<MatchStatistics> matchesInPosition = historicalData.stream()
                 .filter(m -> position.equalsIgnoreCase(m.getPosition()))
                 .collect(Collectors.toList());
 
         if (matchesInPosition.isEmpty()) {
-            return 1.0; // Neutral factor if no data for this position
+            return 1.0; // Neutral factor if there is no data for this position
         }
 
         // Calculate average performance in this position
@@ -150,7 +151,7 @@ public class PredictionService {
                 .average()
                 .orElse(6.0);
 
-        // Return performance ratio (>1 = better in this position)
+        // Return performance ratio (>1 means better performance in this position)
         return avgRatingInPosition / overallAvgRating;
     }
 
@@ -177,12 +178,12 @@ public class PredictionService {
 
         double performanceRatio = homePerformance / awayPerformance;
 
-        // Normalize to reasonable range
+        // Normalize to a reasonable range
         return isHome ? Math.min(1.3, Math.max(0.7, performanceRatio))
                 : Math.min(1.3, Math.max(0.7, 1.0 / performanceRatio));
     }
 
-    // Helper method for normal distribution CDF
+    // Helper method for the normal distribution CDF
     private Double cumulativeDistributionFunction(double z) {
         // Simplified CDF approximation
         return 0.5 * (1 + erf(z / Math.sqrt(2)));

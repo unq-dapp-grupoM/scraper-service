@@ -156,23 +156,23 @@ public class PerformanceCalculatorService {
     }
 
     private Double calculateShotAccuracy(List<MatchStatistics> matches) {
-        // MEJORADO: Estimación basada en goles reales
+        // IMPROVED: Estimation based on actual goals
         double goalsPerGame = calculateGoalsPerMatch(matches);
         double shotsPerGame = calculateShotsPerMatch(matches);
 
         if (shotsPerGame == 0)
-            return 0.3; // Default si no hay tiros
+            return 0.3; // Default if there are no shots
 
-        // Si anota muchos goles con pocos tiros → buena precisión
+        // If he scores many goals with few shots -> good accuracy
         double efficiency = goalsPerGame / shotsPerGame;
-        return Math.min(0.8, Math.max(0.2, efficiency * 3.0)); // Rango realista 20%-80%
+        return Math.min(0.8, Math.max(0.2, efficiency * 3.0)); // Realistic range 20%-80%
     }
 
     private Double calculateKeyPassesPerMatch(List<MatchStatistics> matches) {
-        // MEJORADO: Basado en asistencias reales
+        // IMPROVED: Based on actual assists
         double assistsPerGame = calculateAssistsPerMatch(matches);
 
-        // Relación realista: por cada asistencia hay ~2-3 pases clave
+        // Realistic ratio: for each assist there are ~2-3 key passes
         return Math.max(0.5, assistsPerGame * 2.5);
     }
 
@@ -182,19 +182,20 @@ public class PerformanceCalculatorService {
     }
 
     private Double calculateRecoveriesPerMatch(List<MatchStatistics> matches) {
-        // MEJORADO: Basado en posición y rendimiento defensivo
+        // IMPROVED: Based on position and defensive performance
         if (matches.isEmpty())
             return 2.0;
 
         String position = matches.get(0).getPosition();
         double avgRating = calculateAverageRating(matches);
 
-        if (position != null && position.toLowerCase().contains("def")) {
-            return 4.0 + (avgRating - 6.0); // Defensores: más recuperaciones
-        } else if (position != null && position.toLowerCase().contains("mid")) {
-            return 2.5 + (avgRating - 6.0) * 0.5; // Mediocampistas: medio
+        if (position != null && (position.toLowerCase().contains("def") || position.toLowerCase().contains("df"))) {
+            return 4.0 + (avgRating - 6.0); // Defenders: more recoveries
+        } else if (position != null
+                && (position.toLowerCase().contains("mid") || position.toLowerCase().contains("mf"))) {
+            return 2.5 + (avgRating - 6.0) * 0.5; // Midfielders: medium
         } else {
-            return 1.0 + (avgRating - 6.0) * 0.3; // Delanteros: menos
+            return 1.0 + (avgRating - 6.0) * 0.3; // Forwards: less
         }
     }
 

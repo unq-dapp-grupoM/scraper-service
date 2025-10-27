@@ -52,9 +52,9 @@ class TeamServiceTest {
     }
 
     @Test
-    @DisplayName("Debe devolver DTOs desde la BD si el equipo ya existe")
+    @DisplayName("Should return DTOs from the DB if the team already exists")
     void whenTeamFoundInDatabase_thenReturnDtoFromDb() {
-        // Arrange: Simulamos que el repositorio encuentra al equipo
+        // Arrange: We simulate that the repository finds the team
         when(teamRepository.findByNameContainingIgnoreCase(teamName)).thenReturn(List.of(testTeam));
 
         // Act
@@ -67,18 +67,18 @@ class TeamServiceTest {
         assertEquals(1, result.get(0).getSquad().size());
         assertEquals("Test Player", result.get(0).getSquad().get(0).getName());
 
-        // Verificamos que no se hizo ninguna llamada de scraping ni se guardó nada
+        // We verify that no scraping call was made and nothing was saved
         verify(teamService, never()).getHtmlContent(anyString(), anyString());
         verify(teamRepository, never()).save(any(Team.class));
     }
 
     @Test
-    @DisplayName("Debe lanzar una excepción si el equipo no se encuentra en la búsqueda")
+    @DisplayName("Should throw an exception if the team is not found in the search")
     void whenTeamNotFoundInSearch_thenThrowException() {
         // Arrange
         when(teamRepository.findByNameContainingIgnoreCase(teamName)).thenReturn(Collections.emptyList());
 
-        // Simulamos un HTML de búsqueda sin resultados para equipos
+        // We simulate a search HTML with no results for teams
         String emptySearchHtml = "<html><body><div class='search-result'><h2>Equipos</h2>" +
                 "<table><tbody></tbody></table></div></body></html>";
         doReturn(emptySearchHtml).when(teamService).getHtmlContent(anyString(), anyString());
@@ -86,7 +86,7 @@ class TeamServiceTest {
         // Act & Assert
         // El servicio envuelve las excepciones específicas en una RuntimeException
         // genérica.
-        // Verificamos que se lance esta excepción y que la causa sea la que esperamos.
+        // We verify that this exception is thrown and that the cause is what we expect.
         Exception exception = assertThrows(RuntimeException.class, () -> {
             teamService.getTeamInfoByName(teamName);
         });
@@ -98,12 +98,12 @@ class TeamServiceTest {
     }
 
     @Test
-    @DisplayName("Debe lanzar una RuntimeException si el scraping falla inesperadamente")
+    @DisplayName("Should throw a RuntimeException if scraping fails unexpectedly")
     void whenScrapingFails_thenThrowRuntimeException() {
         // Arrange
         when(teamRepository.findByNameContainingIgnoreCase(teamName)).thenReturn(Collections.emptyList());
 
-        // Simulamos que la llamada de red falla
+        // We simulate that the network call fails
         doThrow(new RuntimeException("Network Error"))
                 .when(teamService).getHtmlContent(anyString(), anyString());
 

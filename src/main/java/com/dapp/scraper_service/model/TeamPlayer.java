@@ -32,10 +32,10 @@ public class TeamPlayer {
     private String manOfTheMatch;
     private String rating;
 
-    // Muchos jugadores de plantilla pertenecen a un solo equipo.
+    // Many squad players belong to a single team.
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "team_id", nullable = false) // Clave foránea a la tabla teams
-    @JsonIgnore // Evita bucles infinitos al convertir a JSON
+    @JsonIgnore // Avoid infinite loops when converting to JSON
     private Team team;
 
 }

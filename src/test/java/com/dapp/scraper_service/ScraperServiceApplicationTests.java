@@ -17,26 +17,24 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import com.dapp.scraper_service.model.MatchStatistics;
 import com.dapp.scraper_service.model.PerformanceMetrics;
-import java.util.Collections;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 @AutoConfigureMockMvc
-@ActiveProfiles("testing") // Activa el perfil 'testing' para usar la base de datos en memoria
+@ActiveProfiles("testing") // Activates the 'testing' profile to use the in-memory database
 class ScraperServiceApplicationTests {
 
 	@Autowired
-	private MockMvc mockMvc; // MockMvc para simular peticiones HTTP
+	private MockMvc mockMvc; // MockMvc to simulate HTTP requests
 
-	// Mockeamos todos los servicios para aislar la capa de controladores
+	// We mock all services to isolate the controller layer
 	@MockBean
 	private PlayerService playerService;
 	@MockBean
@@ -49,19 +47,19 @@ class ScraperServiceApplicationTests {
 	private DataIntegrationService dataIntegrationService;
 
 	@Test
-	@DisplayName("El contexto de la aplicación debe cargar correctamente")
+	@DisplayName("The application context should load correctly")
 	void contextLoads() {
-		// Esta prueba básica asegura que el contexto de la aplicación se carga
-		// correctamente.
-		// Si falla, hay un problema en la configuración general de tu aplicación.
+		// This basic test ensures that the application context loads correctly.
+		// If it fails, there is a problem in the general configuration of your
+		// application.
 	}
 
-	// --- Tests para ScraperController ---
+	// --- Tests for ScraperController ---
 
 	@Test
-	@DisplayName("GET /api/scrape/player debe devolver 200 OK cuando el jugador es encontrado")
+	@DisplayName("GET /api/scrape/player should return 200 OK when the player is found")
 	void whenScrapePlayerIsCalled_withValidPlayer_thenReturnsOk() throws Exception {
-		// Arrange: Configuramos el mock para que devuelva una lista con un DTO
+		// Arrange: We configure the mock to return a list with a DTO
 		PlayerDTO mockPlayer = new PlayerDTO();
 		mockPlayer.setName("Lionel Messi");
 		when(playerService.getPlayerInfoByName("Lionel Messi")).thenReturn(List.of(mockPlayer));
@@ -73,10 +71,10 @@ class ScraperServiceApplicationTests {
 	}
 
 	@Test
-	@DisplayName("GET /api/scrape/player debe devolver 404 Not Found cuando el jugador no es encontrado")
+	@DisplayName("GET /api/scrape/player should return 404 Not Found when the player is not found")
 	void whenScrapePlayerIsCalled_withInvalidPlayer_thenReturnsNotFound() throws Exception {
-		// Arrange: Configuramos el mock para que lance la excepción que el controlador
-		// espera
+		// Arrange: We configure the mock to throw the exception that the controller
+		// expects
 		when(playerService.getPlayerInfoByName(anyString())).thenThrow(new IllegalArgumentException("Not found"));
 
 		// Act & Assert
@@ -84,14 +82,14 @@ class ScraperServiceApplicationTests {
 				.andExpect(status().isNotFound());
 	}
 
-	// --- Tests para AnalysisController ---
+	// --- Tests for AnalysisController ---
 
 	@Test
-	@DisplayName("GET /api/analysis/{player}/metrics debe devolver 200 OK con datos válidos")
+	@DisplayName("GET /api/analysis/{player}/metrics should return 200 OK with valid data")
 	void whenGetMetricsIsCalled_withValidPlayer_thenReturnsOk() throws Exception {
-		// Arrange: Simulamos que se encuentra al menos una estadística
+		// Arrange: We simulate that at least one statistic is found
 		when(dataIntegrationService.convertToMatchStatistics(anyString())).thenReturn(List.of(new MatchStatistics()));
-		// Y que el calculador devuelve un objeto de métricas
+		// And that the calculator returns a metrics object
 		when(performanceCalculator.calculateMetrics(anyList())).thenReturn(new PerformanceMetrics());
 
 		// Act & Assert
