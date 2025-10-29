@@ -1,5 +1,6 @@
 package com.dapp.scraper_service.controller;
 
+import com.dapp.scraper_service.model.dto.MatchDTO;
 import com.dapp.scraper_service.model.dto.PlayerDTO;
 import java.util.List;
 import com.dapp.scraper_service.model.dto.TeamDTO;
@@ -49,4 +50,19 @@ public class ScraperController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
+
+    @GetMapping("/futureMatches")
+    public ResponseEntity<List<MatchDTO>> scrapeFutureMatches(@RequestParam("teamName") String teamName) {
+        try {
+            List<MatchDTO> matches = teamService.getFutureMatchesByTeamName(teamName);
+            return ResponseEntity.ok(matches);
+        } catch (IllegalArgumentException e) {
+            // Si el TeamService lanza IllegalArgumentException (ej. equipo no encontrado)
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        } catch (Exception e) {
+            // Para cualquier otro error inesperado durante el scraping
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
 }
