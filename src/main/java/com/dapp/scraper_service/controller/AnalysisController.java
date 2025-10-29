@@ -41,7 +41,7 @@ public class AnalysisController {
         this.dataIntegrationService = dataIntegrationService;
     }
 
-    @GetMapping("/{player}/metrics")
+    @GetMapping("/{player}/performanceMetrics")
     public ResponseEntity<?> getPerformanceMetrics(
             @PathVariable("player") String player,
             @RequestParam(name = "season", defaultValue = "2024") String season) {
@@ -56,8 +56,8 @@ public class AnalysisController {
                                 "message", "No statistics found for player: " + player));
             }
 
-            PerformanceMetrics metrics = performanceCalculator.calculateMetrics(matches);
-            return ResponseEntity.ok(metrics);
+            PerformanceMetrics performanceMetrics = performanceCalculator.calculateMetrics(matches);
+            return ResponseEntity.ok(performanceMetrics);
 
         } catch (Exception e) {
             return ResponseEntity.status(500).body(
