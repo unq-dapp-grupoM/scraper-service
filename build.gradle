@@ -1,65 +1,71 @@
 plugins {
-	id 'java'
-	id 'org.springframework.boot' version '3.2.7' // Usar una versión estable
-	id 'io.spring.dependency-management' version '1.1.5' // Versión compatible con Spring Boot 3.2.x
+    id 'java'
+    id 'org.springframework.boot' version '3.2.7'
+    id 'io.spring.dependency-management' version '1.1.5'
 }
 
 group = 'com.dapp'
 version = '0.0.1-SNAPSHOT'
-description = 'Demo project for Spring Boot'
 
 java {
-	toolchain {
-		languageVersion = JavaLanguageVersion.of(21)
-	}
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
 }
 
 configurations {
-	compileOnly {
-		extendsFrom annotationProcessor
-	}
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
 }
 
 repositories {
-	mavenCentral()
+    mavenCentral()
 }
 
 dependencies {
-	implementation 'org.springframework.boot:spring-boot-starter-web'
-	compileOnly 'org.projectlombok:lombok'
-	annotationProcessor 'org.projectlombok:lombok'
-	testImplementation 'org.springframework.boot:spring-boot-starter-test'
-	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-	
-
-	// Añadimos JSoup para parsear HTML
-  	implementation 'org.jsoup:jsoup:1.17.2'
-
-	// --- Añadimos las dependencias para Caching ---
-	implementation 'org.springframework.boot:spring-boot-starter-cache'
-	implementation 'com.github.ben-manes.caffeine:caffeine'
-
-	// --- Añadimos la dependencia para JPA y la base de datos ---
-	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-
-	// HSQLDB H2
-	runtimeOnly 'org.hsqldb:hsqldb' // Tu base de datos en memoria principal
-	runtimeOnly 'com.h2database:h2'    // Dependencia para habilitar la consola web
-
-	// PostgreSQL para producción
+    // Dependencias principales
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-cache'
+    
+    // JSoup
+    implementation 'org.jsoup:jsoup:1.17.2'
+    
+    // Cache
+    implementation 'com.github.ben-manes.caffeine:caffeine'
+    
+    // Lombok
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+    
+    // Base de datos
+    runtimeOnly 'com.h2database:h2'  // Usa H2 en lugar de HSQLDB para simplificar
     runtimeOnly 'org.postgresql:postgresql'
 
-
-}
-
-tasks.withType(JavaCompile) {
-    options.compilerArgs << '-parameters'
-}
-
-compileTestJava {
-    options.compilerArgs << '-parameters'
+    // DEPENDENCIAS DE TEST - CRÍTICAS
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
 tasks.named('test') {
-	useJUnitPlatform()
+    useJUnitPlatform()
+    testLogging {
+        events "passed", "skipped", "failed"
+        exceptionFormat = "full"
+    }
+}
+
+task e2eTest(type: Test) {
+    useJUnitPlatform()
+    testLogging {
+        events "passed", "skipped", "failed"
+        exceptionFormat = "full"
+    }
+    filter {
+        includeTestsMatching "*Functional*E2ETest"
+        includeTestsMatching "*ApplicationContextTest"
+    }
+    shouldRunAfter test
 }

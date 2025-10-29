@@ -94,7 +94,7 @@ class PredictionServiceTest {
     void whenPredicting_thenUsesOnlyCurrentSeasonDataForFactors() {
         // Arrange
         when(matchStatisticsRepository.findByPlayerName(playerName)).thenReturn(historicalMatches);
-        when(performanceCalculator.calculateMetrics(anyList())).thenReturn(testMetrics);
+        when(performanceCalculator.calculateMetrics(any(List.class))).thenReturn(testMetrics);
 
         // Act
         predictionService.predictPerformance(playerName, "Opponent D", true, "FW");
