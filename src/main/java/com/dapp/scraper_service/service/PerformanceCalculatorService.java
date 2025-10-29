@@ -13,14 +13,14 @@ import com.dapp.scraper_service.repository.PerformanceMetricsRepository;
 @Service
 public class PerformanceCalculatorService {
 
-    private final PerformanceMetricsRepository metricsRepository;
+    private final PerformanceMetricsRepository performanceMetricsRepository;
 
-    public PerformanceCalculatorService(PerformanceMetricsRepository metricsRepository) {
-        this.metricsRepository = metricsRepository;
+    public PerformanceCalculatorService(PerformanceMetricsRepository performanceMetricsRepository) {
+        this.performanceMetricsRepository = performanceMetricsRepository;
     }
 
     public PerformanceMetrics calculateMetrics(List<MatchStatistics> matches) {
-        PerformanceMetrics metrics = new PerformanceMetrics();
+        PerformanceMetrics performanceMetrics = new PerformanceMetrics();
 
         List<MatchStatistics> playedMatches = matches.stream()
                 .filter(m -> m.getMinutesPlayed() > 0)
@@ -29,37 +29,37 @@ public class PerformanceCalculatorService {
         int totalMatches = playedMatches.size();
         if (totalMatches == 0) {
             if (!matches.isEmpty()) {
-                metrics.setPlayerName(matches.get(0).getPlayerName());
+                performanceMetrics.setPlayerName(matches.get(0).getPlayerName());
             }
-            return metrics;
+            return performanceMetrics;
         }
 
-        metrics.setPlayerName(playedMatches.get(0).getPlayerName());
+        performanceMetrics.setPlayerName(playedMatches.get(0).getPlayerName());
 
         // BASIC CALCULATIONS
-        metrics.setGoalsPerMatch(calculateGoalsPerMatch(playedMatches));
-        metrics.setAssistsPerMatch(calculateAssistsPerMatch(playedMatches));
-        metrics.setGoalInvolvement(calculateGoalInvolvement(playedMatches));
-        metrics.setShotsPerMatch(calculateShotsPerMatch(playedMatches));
-        metrics.setPassAccuracy(calculatePassAccuracy(playedMatches));
-        metrics.setAverageRating(calculateAverageRating(playedMatches));
+        performanceMetrics.setGoalsPerMatch(calculateGoalsPerMatch(playedMatches));
+        performanceMetrics.setAssistsPerMatch(calculateAssistsPerMatch(playedMatches));
+        performanceMetrics.setGoalInvolvement(calculateGoalInvolvement(playedMatches));
+        performanceMetrics.setShotsPerMatch(calculateShotsPerMatch(playedMatches));
+        performanceMetrics.setPassAccuracy(calculatePassAccuracy(playedMatches));
+        performanceMetrics.setAverageRating(calculateAverageRating(playedMatches));
 
         // NEW: Calculate rating deviation for consistency
-        metrics.setRatingDeviation(calculateRatingDeviation(playedMatches, metrics.getAverageRating()));
+        performanceMetrics.setRatingDeviation(calculateRatingDeviation(playedMatches, performanceMetrics.getAverageRating()));
 
-        metrics.setShotAccuracy(calculateShotAccuracy(playedMatches));
-        metrics.setKeyPassesPerMatch(calculateKeyPassesPerMatch(playedMatches));
-        metrics.setAerialDuelsWon(calculateAerialDuelsWon(playedMatches));
-        metrics.setRecoveriesPerMatch(calculateRecoveriesPerMatch(playedMatches));
-        metrics.setMinutesPerMatch(calculateMinutesPerMatch(playedMatches));
+        performanceMetrics.setShotAccuracy(calculateShotAccuracy(playedMatches));
+        performanceMetrics.setKeyPassesPerMatch(calculateKeyPassesPerMatch(playedMatches));
+        performanceMetrics.setAerialDuelsWon(calculateAerialDuelsWon(playedMatches));
+        performanceMetrics.setRecoveriesPerMatch(calculateRecoveriesPerMatch(playedMatches));
+        performanceMetrics.setMinutesPerMatch(calculateMinutesPerMatch(playedMatches));
 
         // ADVANCED PREDICTION METRICS
-        metrics.setGoalProbability(calculateGoalProbability(playedMatches));
-        metrics.setAssistProbability(calculateAssistProbability(playedMatches));
-        metrics.setOffensiveImpact(calculateOffensiveImpact(playedMatches));
-        metrics.setPerformanceTrend(calculatePerformanceTrend(playedMatches));
+        performanceMetrics.setGoalProbability(calculateGoalProbability(playedMatches));
+        performanceMetrics.setAssistProbability(calculateAssistProbability(playedMatches));
+        performanceMetrics.setOffensiveImpact(calculateOffensiveImpact(playedMatches));
+        performanceMetrics.setPerformanceTrend(calculatePerformanceTrend(playedMatches));
 
-        return metricsRepository.save(metrics);
+        return performanceMetricsRepository.save(performanceMetrics);
     }
 
     private Double calculateRatingDeviation(List<MatchStatistics> matches, Double averageRating) {
