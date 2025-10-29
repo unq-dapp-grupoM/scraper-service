@@ -42,6 +42,7 @@ dependencies {
     // Base de datos
     runtimeOnly 'com.h2database:h2'  // Usa H2 en lugar de HSQLDB para simplificar
     runtimeOnly 'org.postgresql:postgresql'
+    runtimeOnly 'org.hsqldb:hsqldb'
 
     // DEPENDENCIAS DE TEST - CRÍTICAS
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
