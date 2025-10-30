@@ -93,7 +93,7 @@ class ScraperServiceApplicationTests {
 		when(performanceCalculator.calculateMetrics(anyList())).thenReturn(new PerformanceMetrics());
 
 		// Act & Assert
-		mockMvc.perform(get("/api/analysis/Test Player/metrics"))
+		mockMvc.perform(get("/api/analysis/Test Player/performanceMetrics"))
 				.andExpect(status().isOk());
 	}
 
