@@ -2,6 +2,8 @@ package com.dapp.scraper_service.model;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.NoArgsConstructor;
 
 import java.util.ArrayList;
@@ -11,6 +13,8 @@ import java.util.List;
 @Table(name = "players") // Es una buena práctica nombrar las tablas en plural
 @Data
 @NoArgsConstructor
+@Getter
+@Setter
 public class Player {
 
     @Id
