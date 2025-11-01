@@ -47,16 +47,6 @@ class ScraperServiceApplicationTests {
 	private DataIntegrationService dataIntegrationService;
 
 	@Test
-	@DisplayName("The application context should load correctly")
-	void contextLoads() {
-		// This basic test ensures that the application context loads correctly.
-		// If it fails, there is a problem in the general configuration of your
-		// application.
-	}
-
-	// --- Tests for ScraperController ---
-
-	@Test
 	@DisplayName("GET /api/scrape/player should return 200 OK when the player is found")
 	void whenScrapePlayerIsCalled_withValidPlayer_thenReturnsOk() throws Exception {
 		// Arrange: We configure the mock to return a list with a DTO
