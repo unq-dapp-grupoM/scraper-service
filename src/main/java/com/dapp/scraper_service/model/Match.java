@@ -2,12 +2,16 @@ package com.dapp.scraper_service.model;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Table(name = "matches")
 @Data
 @NoArgsConstructor
+@Getter
+@Setter
 public class Match {
 
     @Id

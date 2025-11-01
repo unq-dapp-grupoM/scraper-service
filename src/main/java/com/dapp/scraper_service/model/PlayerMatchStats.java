@@ -3,12 +3,16 @@ package com.dapp.scraper_service.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Table(name = "player_match_stats")
 @Data
 @NoArgsConstructor
+@Getter
+@Setter
 public class PlayerMatchStats {
 
     @Id

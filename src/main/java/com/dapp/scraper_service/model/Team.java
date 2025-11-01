@@ -2,7 +2,9 @@ package com.dapp.scraper_service.model;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,6 +13,8 @@ import java.util.List;
 @Table(name = "teams")
 @Data
 @NoArgsConstructor
+@Getter
+@Setter
 public class Team {
 
     @Id
