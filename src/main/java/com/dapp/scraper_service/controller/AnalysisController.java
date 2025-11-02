@@ -1,5 +1,6 @@
 package com.dapp.scraper_service.controller;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -8,6 +9,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -19,9 +21,12 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.dapp.scraper_service.model.MatchStatistics;
 import com.dapp.scraper_service.model.PerformanceMetrics;
+import com.dapp.scraper_service.model.QueryHistory;
+import com.dapp.scraper_service.model.QueryType;
 import com.dapp.scraper_service.model.PredictiveAnalysis;
 import com.dapp.scraper_service.service.DataIntegrationService;
 import com.dapp.scraper_service.service.PerformanceCalculatorService;
+import com.dapp.scraper_service.service.QueryHistoryService;
 import com.dapp.scraper_service.service.PredictionService;
 
 @RestController
@@ -32,18 +37,22 @@ public class AnalysisController {
     private final PredictionService predictionService;
     private final PerformanceCalculatorService performanceCalculator;
     private final DataIntegrationService dataIntegrationService;
+    private final QueryHistoryService queryHistoryService;
 
     public AnalysisController(PredictionService predictionService,
             PerformanceCalculatorService performanceCalculator,
-            DataIntegrationService dataIntegrationService) {
+            DataIntegrationService dataIntegrationService,
+            QueryHistoryService queryHistoryService) {
         this.predictionService = predictionService;
         this.performanceCalculator = performanceCalculator;
         this.dataIntegrationService = dataIntegrationService;
+        this.queryHistoryService = queryHistoryService;
     }
 
     @GetMapping("/{player}/performanceMetrics")
     public ResponseEntity<?> getPerformanceMetrics(
             @PathVariable("player") String player,
+            @RequestParam(name = "userId") Long userId,
             @RequestParam(name = "season", defaultValue = "2024") String season) {
 
         try {
@@ -55,6 +64,9 @@ public class AnalysisController {
                         Map.of("error", "No data found",
                                 "message", "No statistics found for player: " + player));
             }
+
+            // Registrar la consulta en el historial
+            queryHistoryService.recordQuery(userId, player, QueryType.PERFORMANCE);
 
             PerformanceMetrics performanceMetrics = performanceCalculator.calculateMetrics(matches);
             return ResponseEntity.ok(performanceMetrics);
@@ -69,6 +81,7 @@ public class AnalysisController {
     @GetMapping("/{player}/prediction")
     public ResponseEntity<?> predictPerformance(
             @PathVariable("player") String player,
+            @RequestParam(name = "userId") Long userId,
             @RequestParam(name = "opponent") String opponent,
             @RequestParam(name = "isHome") boolean isHome,
             @RequestParam(name = "position") String position) {
@@ -82,6 +95,9 @@ public class AnalysisController {
                         Map.of("error", "No data found",
                                 "message", "No statistics available for prediction for player: " + player));
             }
+
+            // Registrar la consulta en el historial
+            queryHistoryService.recordQuery(userId, player, QueryType.PREDICTION);
 
             PredictiveAnalysis prediction = predictionService.predictPerformance(
                     player, opponent, isHome, position);
@@ -97,7 +113,8 @@ public class AnalysisController {
 
     @GetMapping("/{player}/comparison")
     public ResponseEntity<Map<String, Object>> getComparativeAnalysis(
-            @PathVariable("player") String player) {
+            @PathVariable("player") String player,
+            @RequestParam(name = "userId") Long userId) {
 
         Map<String, Object> response = new HashMap<>();
 
@@ -125,6 +142,9 @@ public class AnalysisController {
                 }
             }
 
+            // Registrar la consulta en el historial
+            queryHistoryService.recordQuery(userId, player, QueryType.COMPARISON);
+
             // Also show all available seasons for comparison
             Map<String, List<MatchStatistics>> matchesBySeason = allMatches.stream()
                     .filter(m -> m.getSeason() != null && !m.getSeason().isEmpty())
@@ -148,5 +168,15 @@ public class AnalysisController {
             response.put("message", e.getMessage());
             return ResponseEntity.status(500).body(response);
         }
+    }
+
+    @GetMapping("/history/{player}")
+    public ResponseEntity<List<QueryHistory>> getQueryHistory(
+            @PathVariable("player") String player,
+            @RequestParam("date") @DateTimeFormat(pattern = "dd-MM-yyyy") LocalDate date,
+            @RequestParam("userId") Long userId) {
+
+        List<QueryHistory> history = queryHistoryService.getHistory(player, date, userId);
+        return ResponseEntity.ok(history);
     }
 }
