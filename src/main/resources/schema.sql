@@ -151,6 +151,7 @@ CREATE TABLE IF NOT EXISTS _user (
 CREATE TABLE IF NOT EXISTS query_history (
     id BIGSERIAL PRIMARY KEY,
     user_id BIGINT NOT NULL,
+    user_email VARCHAR(255) NOT NULL,
     player_name VARCHAR(255) NOT NULL,
     query_type VARCHAR(50) NOT NULL,
     query_date DATE NOT NULL,

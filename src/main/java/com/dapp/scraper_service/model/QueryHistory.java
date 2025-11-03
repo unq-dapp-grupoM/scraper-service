@@ -21,6 +21,9 @@ public class QueryHistory {
     private Long userId; // En una app real, sería @ManyToOne User user;
 
     @Column(nullable = false)
+    private String userEmail;
+
+    @Column(nullable = false)
     private String playerName;
 
     @Enumerated(EnumType.STRING)
@@ -33,8 +36,9 @@ public class QueryHistory {
     @Column(nullable = false)
     private LocalTime queryTime;
 
-    public QueryHistory(Long userId, String playerName, QueryType queryType, LocalDate queryDate, LocalTime queryTime) {
+    public QueryHistory(Long userId, String userEmail, String playerName, QueryType queryType, LocalDate queryDate, LocalTime queryTime) {
         this.userId = userId;
+        this.userEmail = userEmail;
         this.playerName = playerName;
         this.queryType = queryType;
         this.queryDate = queryDate;
