@@ -146,3 +146,16 @@ CREATE TABLE IF NOT EXISTS _user (
     password VARCHAR(255) NOT NULL,
     role VARCHAR(100) NOT NULL
 );
+
+-- Tabla: query_history
+CREATE TABLE IF NOT EXISTS query_history (
+    id BIGSERIAL PRIMARY KEY,
+    user_id BIGINT NOT NULL,
+    user_email VARCHAR(255) NOT NULL,
+    player_name VARCHAR(255) NOT NULL,
+    query_type VARCHAR(50) NOT NULL,
+    query_date DATE NOT NULL,
+    query_time TIME NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES _user(id) ON DELETE CASCADE
+);
