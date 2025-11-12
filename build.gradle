@@ -34,6 +34,12 @@ dependencies {
     
     // Cache
     implementation 'com.github.ben-manes.caffeine:caffeine'
+
+    // Spring Boot Actuator
+    implementation("org.springframework.boot:spring-boot-starter-actuator")
+
+    // Prometheus
+    implementation("io.micrometer:micrometer-registry-prometheus")
     
     // Lombok
     compileOnly 'org.projectlombok:lombok'
@@ -69,4 +75,8 @@ task e2eTest(type: Test) {
         includeTestsMatching "*ApplicationContextTest"
     }
     shouldRunAfter test
+}
+
+springBoot {
+    buildInfo()
 }
