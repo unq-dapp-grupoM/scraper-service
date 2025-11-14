@@ -28,6 +28,9 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-cache'
+
+    // AOP
+    implementation 'org.springframework.boot:spring-boot-starter-aop'
     
     // JSoup
     implementation 'org.jsoup:jsoup:1.17.2'

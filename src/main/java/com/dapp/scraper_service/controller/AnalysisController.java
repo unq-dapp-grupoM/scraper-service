@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import com.dapp.scraper_service.audit.AuditQuery;
 
 import com.dapp.scraper_service.model.MatchStatistics;
 import com.dapp.scraper_service.model.PerformanceMetrics;
@@ -50,6 +51,7 @@ public class AnalysisController {
     }
 
     @GetMapping("/{player}/performanceMetrics")
+    @AuditQuery(QueryType.PERFORMANCE)
     public ResponseEntity<?> getPerformanceMetrics(
             @PathVariable("player") String player,
             @RequestParam(name = "userEmail") String userEmail,
@@ -65,9 +67,6 @@ public class AnalysisController {
                                 "message", "No statistics found for player: " + player));
             }
 
-            // Registrar la consulta en el historial
-            queryHistoryService.recordQuery(userEmail, player, QueryType.PERFORMANCE);
-
             PerformanceMetrics performanceMetrics = performanceCalculator.calculateMetrics(matches);
             return ResponseEntity.ok(performanceMetrics);
 
@@ -79,6 +78,7 @@ public class AnalysisController {
     }
 
     @GetMapping("/{player}/prediction")
+    @AuditQuery(QueryType.PREDICTION)
     public ResponseEntity<?> predictPerformance(
             @PathVariable("player") String player,
             @RequestParam(name = "userEmail") String userEmail,
@@ -96,9 +96,6 @@ public class AnalysisController {
                                 "message", "No statistics available for prediction for player: " + player));
             }
 
-            // Registrar la consulta en el historial
-            queryHistoryService.recordQuery(userEmail, player, QueryType.PREDICTION);
-
             PredictiveAnalysis prediction = predictionService.predictPerformance(
                     player, opponent, isHome, position);
 
@@ -112,6 +109,7 @@ public class AnalysisController {
     }
 
     @GetMapping("/{player}/comparison")
+    @AuditQuery(QueryType.COMPARISON)
     public ResponseEntity<Map<String, Object>> getComparativeAnalysis(
             @PathVariable("player") String player,
             @RequestParam(name = "userEmail") String userEmail) {
@@ -141,9 +139,6 @@ public class AnalysisController {
                     response.put("matchesAnalyzed", currentSeasonMatches.size());
                 }
             }
-
-            // Registrar la consulta en el historial
-            queryHistoryService.recordQuery(userEmail, player, QueryType.COMPARISON);
 
             // Also show all available seasons for comparison
             Map<String, List<MatchStatistics>> matchesBySeason = allMatches.stream()
