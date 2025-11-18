@@ -1,9 +1,8 @@
-package com.dapp.scraper_service;
+package com.dapp.scraper_service.service;
 
 import com.dapp.scraper_service.model.MatchStatistics;
 import com.dapp.scraper_service.model.PerformanceMetrics;
 import com.dapp.scraper_service.repository.PerformanceMetricsRepository;
-import com.dapp.scraper_service.service.PerformanceCalculatorService;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
