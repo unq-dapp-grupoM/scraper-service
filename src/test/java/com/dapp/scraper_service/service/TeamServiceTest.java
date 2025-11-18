@@ -1,10 +1,9 @@
-package com.dapp.scraper_service;
+package com.dapp.scraper_service.service;
 
 import com.dapp.scraper_service.model.Team;
 import com.dapp.scraper_service.model.TeamPlayer;
 import com.dapp.scraper_service.model.dto.TeamDTO;
 import com.dapp.scraper_service.repository.TeamRepository;
-import com.dapp.scraper_service.service.TeamService;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;

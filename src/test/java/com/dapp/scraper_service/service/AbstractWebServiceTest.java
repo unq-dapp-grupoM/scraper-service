@@ -1,4 +1,4 @@
-package com.dapp.scraper_service;
+package com.dapp.scraper_service.service;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -10,8 +10,6 @@ import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.client.RestTemplate;
-
-import com.dapp.scraper_service.service.AbstractWebService;
 
 import java.net.URI;
 import java.net.URLEncoder;

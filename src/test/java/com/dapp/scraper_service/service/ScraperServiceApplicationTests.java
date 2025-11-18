@@ -1,14 +1,8 @@
-package com.dapp.scraper_service;
+package com.dapp.scraper_service.service;
 
 import com.dapp.scraper_service.model.dto.PlayerDTO;
 import com.dapp.scraper_service.model.PredictiveAnalysis;
 import com.dapp.scraper_service.model.User;
-import com.dapp.scraper_service.service.DataIntegrationService;
-import com.dapp.scraper_service.service.PerformanceCalculatorService;
-import com.dapp.scraper_service.service.PlayerService;
-import com.dapp.scraper_service.service.PredictionService;
-import com.dapp.scraper_service.service.QueryHistoryService;
-import com.dapp.scraper_service.service.TeamService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -1,13 +1,10 @@
-package com.dapp.scraper_service;
+package com.dapp.scraper_service.service;
 
 import com.dapp.scraper_service.model.MatchStatistics;
 import com.dapp.scraper_service.model.PerformanceMetrics;
 import com.dapp.scraper_service.model.PredictiveAnalysis;
 import com.dapp.scraper_service.repository.MatchStatisticsRepository;
 import com.dapp.scraper_service.repository.PredictiveAnalysisRepository;
-import com.dapp.scraper_service.service.PerformanceCalculatorService;
-import com.dapp.scraper_service.service.PredictionService;
-import com.dapp.scraper_service.service.SimpleTeamStrengthService;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;

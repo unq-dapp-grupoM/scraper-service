@@ -1,11 +1,10 @@
-package com.dapp.scraper_service;
+package com.dapp.scraper_service.service;
 
 import com.dapp.scraper_service.model.MatchStatistics;
 import com.dapp.scraper_service.model.Player;
 import com.dapp.scraper_service.model.PlayerMatchStats;
 import com.dapp.scraper_service.repository.MatchStatisticsRepository;
 import com.dapp.scraper_service.repository.PlayerRepository;
-import com.dapp.scraper_service.service.DataIntegrationService;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
