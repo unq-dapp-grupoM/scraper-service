@@ -9,8 +9,10 @@ import com.dapp.scraper_service.model.PerformanceMetrics;
 import com.dapp.scraper_service.model.PredictiveAnalysis;
 import com.dapp.scraper_service.repository.MatchStatisticsRepository;
 import com.dapp.scraper_service.repository.PredictiveAnalysisRepository;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@Transactional
 public class PredictionService {
 
     private final PerformanceCalculatorService performanceCalculator;
@@ -28,6 +30,7 @@ public class PredictionService {
         this.teamStrengthService = teamStrengthService;
     }
 
+    @Transactional
     public PredictiveAnalysis predictPerformance(String playerName,
             String opponent,
             boolean isHome,
@@ -57,7 +60,8 @@ public class PredictionService {
         return predictiveAnalysisRepository.save(prediction);
     }
 
-    private List<MatchStatistics> getPlayerHistoricalData(String playerName) {
+    @Transactional(readOnly = true)
+    protected List<MatchStatistics> getPlayerHistoricalData(String playerName) {
         List<MatchStatistics> allMatches = matchStatisticsRepository.findByPlayerName(playerName);
 
         return allMatches.stream()

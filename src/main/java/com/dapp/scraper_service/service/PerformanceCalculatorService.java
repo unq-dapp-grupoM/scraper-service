@@ -9,8 +9,10 @@ import org.springframework.stereotype.Service;
 import com.dapp.scraper_service.model.MatchStatistics;
 import com.dapp.scraper_service.model.PerformanceMetrics;
 import com.dapp.scraper_service.repository.PerformanceMetricsRepository;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@Transactional
 public class PerformanceCalculatorService {
 
     private final PerformanceMetricsRepository performanceMetricsRepository;
@@ -19,6 +21,7 @@ public class PerformanceCalculatorService {
         this.performanceMetricsRepository = performanceMetricsRepository;
     }
 
+    @Transactional
     public PerformanceMetrics calculateMetrics(List<MatchStatistics> matches) {
         PerformanceMetrics performanceMetrics = new PerformanceMetrics();
 

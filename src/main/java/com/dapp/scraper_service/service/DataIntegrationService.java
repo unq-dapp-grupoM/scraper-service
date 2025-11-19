@@ -12,8 +12,10 @@ import com.dapp.scraper_service.model.Player;
 import com.dapp.scraper_service.model.PlayerMatchStats;
 import com.dapp.scraper_service.repository.MatchStatisticsRepository;
 import com.dapp.scraper_service.repository.PlayerRepository;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@Transactional
 public class DataIntegrationService {
 
     private final PlayerRepository playerRepository;
@@ -28,6 +30,7 @@ public class DataIntegrationService {
     /**
      * Converts PlayerMatchStats (scraping) data to MatchStatistics (analysis)
      */
+    @Transactional
     public List<MatchStatistics> convertToMatchStatistics(String playerName) {
         List<Player> players = playerRepository.findByNameContainingIgnoreCase(playerName);
         if (players.isEmpty()) {
