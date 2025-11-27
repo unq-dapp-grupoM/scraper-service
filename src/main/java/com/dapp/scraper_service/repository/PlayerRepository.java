@@ -18,4 +18,6 @@ public interface PlayerRepository extends JpaRepository<Player, Long> {
 
     // Busca un jugador por nombre exacto
     Optional<Player> findByName(String name);
+
+    Long countByNameContainingIgnoreCase(String name);
 }
