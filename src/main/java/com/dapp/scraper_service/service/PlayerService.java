@@ -16,7 +16,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -231,5 +233,41 @@ public class PlayerService extends AbstractWebService {
             matchStats.add(match);
         }
         return matchStats;
+    }
+
+    @Transactional
+    public Map<String, Object> getPlayerInfoForLoadTest(String playerName) {
+        Map<String, Object> result = new HashMap<>();
+
+        try {
+            // 1. Buscar en base de datos primero (sin relaciones lazy)
+            List<Player> playersFromDb = playerRepository.findByNameContainingIgnoreCase(playerName);
+
+            if (!playersFromDb.isEmpty()) {
+                // Solo devolver datos básicos, no las relaciones lazy
+                Player player = playersFromDb.get(0);
+                result.put("status", "SUCCESS_FROM_DB");
+                result.put("playerName", player.getName());
+                result.put("team", player.getCurrentTeam());
+                result.put("position", player.getPositions());
+                // NO acceder a player.getMatchStats() para evitar lazy loading
+            } else {
+                // Si no está en BD, hacer scraping
+                List<PlayerDTO> players = getPlayerInfoByName(playerName);
+                result.put("status", "SUCCESS_FROM_SCRAPE");
+                result.put("playersFound", players.size());
+            }
+
+        } catch (Exception e) {
+            result.put("status", "ERROR");
+            result.put("error", e.getMessage());
+        }
+
+        return result;
+    }
+
+    @Transactional
+    public Long countPlayersByName(String playerName) {
+        return playerRepository.countByNameContainingIgnoreCase(playerName);
     }
 }
