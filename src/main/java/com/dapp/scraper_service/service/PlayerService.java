@@ -123,7 +123,7 @@ public class PlayerService extends AbstractWebService {
     }
 
     @Transactional
-    protected void savePlayer(PlayerDTO playerDTO) {
+    public void savePlayer(PlayerDTO playerDTO) {
         // Use orElse to create a new one if it doesn't exist
         Player player = playerRepository.findByNameContainingIgnoreCase(playerDTO.getName()).stream().findFirst()
                 .orElse(new Player());

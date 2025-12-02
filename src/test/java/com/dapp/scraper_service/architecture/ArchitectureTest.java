@@ -2,6 +2,7 @@ package com.dapp.scraper_service.architecture;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tngtech.archunit.core.importer.ImportOption;
@@ -96,4 +97,15 @@ public class ArchitectureTest {
 
     @ArchTest
     public static final ArchRule useSlf4jForLogging = NO_CLASSES_SHOULD_USE_JAVA_UTIL_LOGGING;
+
+    // ### Transactional Rules ###
+
+    @ArchTest
+    public static final ArchRule transactionalMethodsShouldBeInServices =
+            com.tngtech.archunit.lang.syntax.ArchRuleDefinition.methods()
+                    .that().areAnnotatedWith(Transactional.class)
+                    .should().beDeclaredInClassesThat().resideInAPackage(SERVICES_PACKAGE)
+                    .andShould().bePublic()
+                    .as("Transactional methods should be public and located only in the service layer");
+
 }
