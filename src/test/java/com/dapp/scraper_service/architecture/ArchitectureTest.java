@@ -1,6 +1,8 @@
 package com.dapp.scraper_service.architecture;
 
+import jakarta.persistence.Entity;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RestController;
@@ -9,6 +11,7 @@ import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.lang.ArchRule;
+
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noFields;
@@ -24,7 +27,6 @@ public class ArchitectureTest {
     private static final String MODEL_PACKAGE = "..model..";
     private static final String AUDIT_PACKAGE = "..audit..";
     private static final String ENDPOINT_PACKAGE = "..endpoint..";
-    private static final String CONFIG_PACKAGE = "..config..";
 
     @ArchTest
     public static final ArchRule layeredArchitectureRule =
@@ -97,6 +99,24 @@ public class ArchitectureTest {
 
     @ArchTest
     public static final ArchRule useSlf4jForLogging = NO_CLASSES_SHOULD_USE_JAVA_UTIL_LOGGING;
+
+    // ### Controller Rules ###
+
+    @ArchTest
+    public static final ArchRule publicMethodsInControllersShouldReturnResponseEntity =
+            com.tngtech.archunit.lang.syntax.ArchRuleDefinition.methods()
+                    .that().arePublic()
+                    .and().areDeclaredInClassesThat().areAnnotatedWith(RestController.class)
+                    .should().haveRawReturnType(ResponseEntity.class)
+                    .as("Public methods in controllers should return ResponseEntity");
+
+    // ### Entity Rules ###
+
+    @ArchTest
+    public static final ArchRule entitiesMustResideInModelPackage =
+            classes().that().areAnnotatedWith(Entity.class)
+                    .should().resideInAPackage(MODEL_PACKAGE)
+                    .as("Entities must reside in the '..model..' package");
 
     // ### Transactional Rules ###
 
