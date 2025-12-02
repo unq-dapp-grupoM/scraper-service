@@ -1,6 +1,5 @@
 package com.dapp.scraper_service.endpoint;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.endpoint.annotation.ReadOperation;
 import org.springframework.boot.actuate.endpoint.annotation.Endpoint;
 import org.springframework.stereotype.Component;
@@ -18,8 +17,11 @@ import java.util.Map;
 @Endpoint(id = "database-stats")
 public class DatabaseStatsEndpoint {
 
-    @Autowired
-    private DataSource dataSource;
+    private final DataSource dataSource;
+
+    public DatabaseStatsEndpoint(DataSource dataSource) {
+        this.dataSource = dataSource;
+    }
 
     @ReadOperation
     public Map<String, Object> getDatabaseStats() {

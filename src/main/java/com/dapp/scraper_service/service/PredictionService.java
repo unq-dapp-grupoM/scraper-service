@@ -61,7 +61,7 @@ public class PredictionService {
     }
 
     @Transactional(readOnly = true)
-    protected List<MatchStatistics> getPlayerHistoricalData(String playerName) {
+    public List<MatchStatistics> getPlayerHistoricalData(String playerName) {
         List<MatchStatistics> allMatches = matchStatisticsRepository.findByPlayerName(playerName);
 
         return allMatches.stream()

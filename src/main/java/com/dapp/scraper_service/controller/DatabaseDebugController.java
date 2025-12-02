@@ -9,11 +9,11 @@ import java.util.Map;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 
-import org.springframework.beans.factory.annotation.Autowired;
 // import org.springframework.context.annotation.Profile;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -24,11 +24,14 @@ import org.springframework.web.bind.annotation.RestController;
 // @Profile("dev")
 public class DatabaseDebugController {
 
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
+    private final JdbcTemplate jdbcTemplate;
+
+    public DatabaseDebugController(JdbcTemplate jdbcTemplate) {
+        this.jdbcTemplate = jdbcTemplate;
+    }
 
     @GetMapping("/tables")
-    public Map<String, Object> listTables() {
+    public ResponseEntity<Map<String, Object>> listTables() {
         Map<String, Object> result = new HashMap<>();
 
         try {
@@ -45,11 +48,11 @@ public class DatabaseDebugController {
             result.put("error", e.getMessage());
         }
 
-        return result;
+        return ResponseEntity.ok(result);
     }
 
     @PostMapping("/create-all-tables")
-    public Map<String, Object> createAllTables() {
+    public ResponseEntity<Map<String, Object>> createAllTables() {
         Map<String, Object> result = new HashMap<>();
 
         try {
@@ -93,7 +96,7 @@ public class DatabaseDebugController {
             result.put("error", e.getMessage());
         }
 
-        return result;
+        return ResponseEntity.ok(result);
     }
 
     private String extractTableName(String sql) {

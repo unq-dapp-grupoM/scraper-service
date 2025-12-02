@@ -2,6 +2,7 @@ package com.dapp.scraper_service.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -14,14 +15,16 @@ import java.util.Map;
 @RequestMapping("/api/health")
 public class HealthController {
 
-    @Autowired
-    private Environment environment;
+    private final Environment environment;
+    private final DataSource dataSource;
 
     @Autowired(required = false) // required=false para evitar errores si no hay DataSource
-    private DataSource dataSource; // required=false to avoid errors if there is no DataSource
-
+    public HealthController(Environment environment, DataSource dataSource) {
+        this.environment = environment;
+        this.dataSource = dataSource;
+    }
     @GetMapping
-    public Map<String, Object> health() {
+    public ResponseEntity<Map<String, Object>> health() {
         Map<String, Object> status = new HashMap<>();
         status.put("status", "UP");
         status.put("activeProfiles", environment.getActiveProfiles());
@@ -43,7 +46,7 @@ public class HealthController {
             }
         }
 
-        return status;
+        return ResponseEntity.ok(status);
     }
 
     private String getDatabaseType(String url) {

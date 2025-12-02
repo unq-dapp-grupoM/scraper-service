@@ -157,7 +157,7 @@ public class TeamService extends AbstractWebService {
     }
 
     @Transactional
-    private List<MatchDTO> parseAndSaveFutureMatches(Document doc, String requestedTeamName) {
+    public List<MatchDTO> parseAndSaveFutureMatches(Document doc, String requestedTeamName) {
         // Log to print the full HTML content received
         log.debug("Full HTML content received for parsing future matches:\n{}", doc.outerHtml());
 
@@ -247,7 +247,7 @@ public class TeamService extends AbstractWebService {
     }
 
     @Transactional
-    protected void saveTeam(TeamDTO teamDTO) {
+    public void saveTeam(TeamDTO teamDTO) {
         Team team = teamRepository.findByNameContainingIgnoreCase(teamDTO.getName()).stream().findFirst()
                 .orElse(new Team());
 
