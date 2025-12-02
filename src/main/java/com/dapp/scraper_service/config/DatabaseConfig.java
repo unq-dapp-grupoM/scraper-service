@@ -4,15 +4,17 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.env.Environment;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Arrays;
 
 @Configuration
 public class DatabaseConfig {
 
-    @Autowired
-    private Environment environment;
+    private final Environment environment;
+
+    public DatabaseConfig(Environment environment) {
+        this.environment = environment;
+    }
 
     @Bean
     @Profile("dev")

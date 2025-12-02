@@ -89,5 +89,11 @@ public class ArchitectureTest {
     // ### General Coding Rules ###
 
     @ArchTest
+    public static final ArchRule noFieldInjection =
+            noFields()
+                    .should().beAnnotatedWith(Autowired.class)
+                    .as("Field injection is discouraged, use constructor injection instead");
+
+    @ArchTest
     public static final ArchRule useSlf4jForLogging = NO_CLASSES_SHOULD_USE_JAVA_UTIL_LOGGING;
 }

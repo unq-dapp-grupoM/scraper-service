@@ -14,12 +14,14 @@ import java.util.Map;
 @RequestMapping("/api/health")
 public class HealthController {
 
-    @Autowired
-    private Environment environment;
+    private final Environment environment;
+    private final DataSource dataSource;
 
     @Autowired(required = false) // required=false para evitar errores si no hay DataSource
-    private DataSource dataSource; // required=false to avoid errors if there is no DataSource
-
+    public HealthController(Environment environment, DataSource dataSource) {
+        this.environment = environment;
+        this.dataSource = dataSource;
+    }
     @GetMapping
     public Map<String, Object> health() {
         Map<String, Object> status = new HashMap<>();

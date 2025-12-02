@@ -9,7 +9,6 @@ import java.util.Map;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 
-import org.springframework.beans.factory.annotation.Autowired;
 // import org.springframework.context.annotation.Profile;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
@@ -24,8 +23,11 @@ import org.springframework.web.bind.annotation.RestController;
 // @Profile("dev")
 public class DatabaseDebugController {
 
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
+    private final JdbcTemplate jdbcTemplate;
+
+    public DatabaseDebugController(JdbcTemplate jdbcTemplate) {
+        this.jdbcTemplate = jdbcTemplate;
+    }
 
     @GetMapping("/tables")
     public Map<String, Object> listTables() {

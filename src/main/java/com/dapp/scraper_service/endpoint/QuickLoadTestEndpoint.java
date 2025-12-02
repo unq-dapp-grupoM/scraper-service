@@ -1,7 +1,6 @@
 package com.dapp.scraper_service.endpoint;
 
 import com.dapp.scraper_service.service.PlayerService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.endpoint.annotation.WriteOperation;
 import org.springframework.boot.actuate.endpoint.annotation.Endpoint;
 import org.springframework.stereotype.Component;
@@ -17,8 +16,11 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Endpoint(id = "load-test-quick")
 public class QuickLoadTestEndpoint {
 
-    @Autowired
-    private PlayerService playerService;
+    private final PlayerService playerService;
+
+    public QuickLoadTestEndpoint(PlayerService playerService) {
+        this.playerService = playerService;
+    }
 
     private final AtomicInteger activeTests = new AtomicInteger(0);
 
